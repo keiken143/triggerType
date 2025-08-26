@@ -1,13 +1,40 @@
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import Navbar from "@/components/Navbar";
+import { Navbar } from "@/components/Navbar";
 import { Mail, Lock, ArrowRight, Github } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const { error } = await signIn(email, password);
+    
+    if (!error) {
+      navigate("/");
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
       <div 
@@ -38,6 +65,9 @@ const Login = () => {
                     id="email"
                     type="email"
                     placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                     className="pl-10 bg-surface border-border focus:border-primary"
                   />
                 </div>
@@ -53,6 +83,9 @@ const Login = () => {
                     id="password"
                     type="password"
                     placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                     className="pl-10 bg-surface border-border focus:border-primary"
                   />
                 </div>
@@ -75,10 +108,18 @@ const Login = () => {
               </div>
             </div>
 
-            <Button className="w-full" variant="default" size="lg">
-              Sign In
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <form onSubmit={handleSubmit}>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="w-full" 
+                variant="default" 
+                size="lg"
+              >
+                {loading ? "Signing in..." : "Sign In"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">

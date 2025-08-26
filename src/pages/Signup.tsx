@@ -1,13 +1,47 @@
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import Navbar from "@/components/Navbar";
+import { Navbar } from "@/components/Navbar";
 import { Mail, Lock, User, ArrowRight, Github } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Signup = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { signUp, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      return;
+    }
+    
+    setLoading(true);
+    
+    const { error } = await signUp(email, password, name);
+    
+    if (!error) {
+      // User will get a toast about checking email
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
       <div 
@@ -38,6 +72,9 @@ const Signup = () => {
                     id="name"
                     type="text"
                     placeholder="Enter your full name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
                     className="pl-10 bg-surface border-border focus:border-primary"
                   />
                 </div>
@@ -53,6 +90,9 @@ const Signup = () => {
                     id="email"
                     type="email"
                     placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                     className="pl-10 bg-surface border-border focus:border-primary"
                   />
                 </div>
@@ -68,6 +108,9 @@ const Signup = () => {
                     id="password"
                     type="password"
                     placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                     className="pl-10 bg-surface border-border focus:border-primary"
                   />
                 </div>
@@ -83,9 +126,15 @@ const Signup = () => {
                     id="confirmPassword"
                     type="password"
                     placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
                     className="pl-10 bg-surface border-border focus:border-primary"
                   />
                 </div>
+                {password !== confirmPassword && confirmPassword && (
+                  <p className="text-sm text-red-400">Passwords do not match</p>
+                )}
               </div>
               
               <div className="flex items-center space-x-2">
@@ -100,10 +149,18 @@ const Signup = () => {
               </div>
             </div>
 
-            <Button className="w-full" variant="glow" size="lg">
-              Create Account
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <form onSubmit={handleSubmit}>
+              <Button 
+                type="submit" 
+                disabled={loading || password !== confirmPassword}
+                className="w-full" 
+                variant="glow" 
+                size="lg"
+              >
+                {loading ? "Creating Account..." : "Create Account"}
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </form>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
