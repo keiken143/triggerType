@@ -6,10 +6,9 @@ const Navbar = () => {
   const location = useLocation();
 
   const navItems = [
+    { name: "Home", href: "/", icon: Code },
     { name: "Type", href: "/type", icon: Code },
-    { name: "Multiplayer", href: "/multiplayer", icon: Users },
     { name: "Leaderboard", href: "/leaderboard", icon: BarChart3 },
-    { name: "Biometrics", href: "/dashboard", icon: Fingerprint },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
