@@ -44,6 +44,48 @@ export type Database = {
         }
         Relationships: []
       }
+      typing_tests: {
+        Row: {
+          accuracy: number
+          character_count: number
+          correct_characters: number
+          created_at: string
+          errors: number
+          id: string
+          language: string
+          test_duration: number
+          updated_at: string
+          user_id: string
+          wpm: number
+        }
+        Insert: {
+          accuracy: number
+          character_count: number
+          correct_characters: number
+          created_at?: string
+          errors: number
+          id?: string
+          language: string
+          test_duration: number
+          updated_at?: string
+          user_id: string
+          wpm: number
+        }
+        Update: {
+          accuracy?: number
+          character_count?: number
+          correct_characters?: number
+          created_at?: string
+          errors?: number
+          id?: string
+          language?: string
+          test_duration?: number
+          updated_at?: string
+          user_id?: string
+          wpm?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

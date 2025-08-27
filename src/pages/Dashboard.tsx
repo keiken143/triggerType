@@ -1,6 +1,9 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import { 
   TrendingUp, 
@@ -13,23 +16,124 @@ import {
   Flame
 } from "lucide-react";
 
+interface TypingTest {
+  id: string;
+  wpm: number;
+  accuracy: number;
+  test_duration: number;
+  language: string;
+  created_at: string;
+}
+
 const Dashboard = () => {
-  // Mock data - in real app this would come from your backend
-  const stats = {
-    avgWpm: 85,
-    bestWpm: 142,
-    accuracy: 94,
-    hoursTyped: 47,
-    testsCompleted: 156,
-    streak: 12
+  const { user } = useAuth();
+  const [recentTests, setRecentTests] = useState<TypingTest[]>([]);
+  const [stats, setStats] = useState({
+    avgWpm: 0,
+    bestWpm: 0,
+    accuracy: 0,
+    hoursTyped: 0,
+    testsCompleted: 0,
+    streak: 0
+  });
+
+  const fetchRecentTests = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('typing_tests')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error('Error fetching recent tests:', error);
+      return;
+    }
+
+    setRecentTests(data || []);
   };
 
-  const recentTests = [
-    { date: "Today", wpm: 89, accuracy: 96, duration: "1m" },
-    { date: "Yesterday", wpm: 82, accuracy: 94, duration: "2m" },
-    { date: "2 days ago", wpm: 87, accuracy: 95, duration: "1m" },
-    { date: "3 days ago", wpm: 91, accuracy: 93, duration: "5m" },
-  ];
+  const calculateStats = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('typing_tests')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching stats:', error);
+      return;
+    }
+
+    if (data && data.length > 0) {
+      const avgWpm = Math.round(data.reduce((sum, test) => sum + test.wpm, 0) / data.length);
+      const bestWpm = Math.max(...data.map(test => test.wpm));
+      const avgAccuracy = Math.round(data.reduce((sum, test) => sum + test.accuracy, 0) / data.length);
+      const totalHours = Math.round(data.reduce((sum, test) => sum + test.test_duration, 0) / 3600 * 10) / 10;
+
+      setStats({
+        avgWpm,
+        bestWpm,
+        accuracy: avgAccuracy,
+        hoursTyped: totalHours,
+        testsCompleted: data.length,
+        streak: 0 // This would need more complex logic to calculate actual streak
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchRecentTests();
+      calculateStats();
+    }
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('typing_tests_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'typing_tests',
+          filter: `user_id=eq.${user?.id}`
+        },
+        () => {
+          fetchRecentTests();
+          calculateStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return "Today";
+    if (diffDays === 2) return "Yesterday";
+    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+    return `${remainingSeconds}s`;
+  };
 
   const weakKeys = [
     { key: "Q", accuracy: 78, frequency: 245 },
@@ -133,19 +237,30 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {recentTests.map((test, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{test.date}</span>
+                    {recentTests.length > 0 ? (
+                      recentTests.map((test, index) => (
+                        <div key={test.id} className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm">{formatDate(test.created_at)}</span>
+                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                              {test.language}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <span className="text-primary font-medium">{test.wpm} WPM</span>
+                            <span className="text-muted-foreground">{Math.round(test.accuracy)}%</span>
+                            <span className="text-muted-foreground">{formatDuration(test.test_duration)}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-4 text-sm">
-                          <span className="text-primary font-medium">{test.wpm} WPM</span>
-                          <span className="text-muted-foreground">{test.accuracy}%</span>
-                          <span className="text-muted-foreground">{test.duration}</span>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>No typing tests completed yet.</p>
+                        <p className="text-sm">Start typing to see your results here!</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
 import { 
   Play, 
@@ -163,6 +166,9 @@ const TypingPage = () => {
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
+  const [testStartTime, setTestStartTime] = useState<Date | null>(null);
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -172,12 +178,58 @@ const TypingPage = () => {
       }, 1000);
     } else if (timeLeft === 0) {
       setIsTyping(false);
+      handleTestComplete();
     }
     return () => clearInterval(interval);
   }, [isTyping, timeLeft]);
 
+  const handleTestComplete = async () => {
+    if (!user || !testStartTime) return;
+
+    const testDuration = 60 - timeLeft;
+    const correctCharacters = Math.round((typedText.length * accuracy) / 100);
+    const errors = typedText.length - correctCharacters;
+
+    try {
+      const { error } = await supabase
+        .from('typing_tests')
+        .insert({
+          user_id: user.id,
+          wpm: wpm,
+          accuracy: accuracy,
+          test_duration: testDuration,
+          language: selectedLanguage,
+          character_count: typedText.length,
+          correct_characters: correctCharacters,
+          errors: errors
+        });
+
+      if (error) {
+        console.error('Error saving test result:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save test result. Please try again.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Test Complete!",
+          description: `${wpm} WPM with ${accuracy}% accuracy. Results saved to your progress.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error saving test result:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save test result. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleStart = () => {
     setIsTyping(true);
+    setTestStartTime(new Date());
   };
 
   const handlePause = () => {
@@ -190,6 +242,7 @@ const TypingPage = () => {
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
+    setTestStartTime(null);
   };
 
   const handleLanguageChange = (language: keyof typeof codeTexts) => {

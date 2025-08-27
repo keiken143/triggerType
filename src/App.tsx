@@ -27,7 +27,7 @@ const App = () => (
           <Route path="/type" element={<TypingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/multiplayer" element={<TypingPage />} />
-          <Route path="/leaderboard" element={<Dashboard />} />
+          <Route path="/progressboard" element={<Dashboard />} />
           <Route path="/profile" element={<Dashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
