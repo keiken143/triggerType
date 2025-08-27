@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Play, 
   Pause, 
@@ -166,9 +166,10 @@ const TypingPage = () => {
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
-  const [testStartTime, setTestStartTime] = useState<Date | null>(null);
-  const { toast } = useToast();
+  const [testCompleted, setTestCompleted] = useState(false);
+  
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -178,19 +179,28 @@ const TypingPage = () => {
       }, 1000);
     } else if (timeLeft === 0) {
       setIsTyping(false);
-      handleTestComplete();
+      setTestCompleted(true);
+      saveTestResult();
     }
     return () => clearInterval(interval);
   }, [isTyping, timeLeft]);
 
-  const handleTestComplete = async () => {
-    if (!user || !testStartTime) return;
-
-    const testDuration = 60 - timeLeft;
-    const correctCharacters = Math.round((typedText.length * accuracy) / 100);
-    const errors = typedText.length - correctCharacters;
+  const saveTestResult = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save your test results.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
+      const testDuration = 60 - timeLeft;
+      const characterCount = typedText.length;
+      const correctCharacters = Math.round((accuracy / 100) * characterCount);
+      const errors = characterCount - correctCharacters;
+
       const { error } = await supabase
         .from('typing_tests')
         .insert({
@@ -199,7 +209,7 @@ const TypingPage = () => {
           accuracy: accuracy,
           test_duration: testDuration,
           language: selectedLanguage,
-          character_count: typedText.length,
+          character_count: characterCount,
           correct_characters: correctCharacters,
           errors: errors
         });
@@ -213,8 +223,8 @@ const TypingPage = () => {
         });
       } else {
         toast({
-          title: "Test Complete!",
-          description: `${wpm} WPM with ${accuracy}% accuracy. Results saved to your progress.`,
+          title: "Test Completed!",
+          description: `${wpm} WPM with ${accuracy}% accuracy. Result saved to your progress.`,
         });
       }
     } catch (error) {
@@ -229,7 +239,6 @@ const TypingPage = () => {
 
   const handleStart = () => {
     setIsTyping(true);
-    setTestStartTime(new Date());
   };
 
   const handlePause = () => {
@@ -242,7 +251,7 @@ const TypingPage = () => {
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
-    setTestStartTime(null);
+    setTestCompleted(false);
   };
 
   const handleLanguageChange = (language: keyof typeof codeTexts) => {
@@ -252,6 +261,7 @@ const TypingPage = () => {
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
+    setTestCompleted(false);
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import { 
   TrendingUp, 
   Target, 
@@ -32,66 +32,91 @@ const Dashboard = () => {
     avgWpm: 0,
     bestWpm: 0,
     accuracy: 0,
-    hoursTyped: 0,
     testsCompleted: 0,
     streak: 0
   });
-
-  const fetchRecentTests = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('typing_tests')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (error) {
-      console.error('Error fetching recent tests:', error);
-      return;
-    }
-
-    setRecentTests(data || []);
-  };
-
-  const calculateStats = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('typing_tests')
-      .select('*')
-      .eq('user_id', user.id);
-
-    if (error) {
-      console.error('Error fetching stats:', error);
-      return;
-    }
-
-    if (data && data.length > 0) {
-      const avgWpm = Math.round(data.reduce((sum, test) => sum + test.wpm, 0) / data.length);
-      const bestWpm = Math.max(...data.map(test => test.wpm));
-      const avgAccuracy = Math.round(data.reduce((sum, test) => sum + test.accuracy, 0) / data.length);
-      const totalHours = Math.round(data.reduce((sum, test) => sum + test.test_duration, 0) / 3600 * 10) / 10;
-
-      setStats({
-        avgWpm,
-        bestWpm,
-        accuracy: avgAccuracy,
-        hoursTyped: totalHours,
-        testsCompleted: data.length,
-        streak: 0 // This would need more complex logic to calculate actual streak
-      });
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchRecentTests();
-      calculateStats();
+      fetchTypingTests();
+      setupRealtimeSubscription();
+    }
+  }, [user]);
+
+  const fetchTypingTests = async () => {
+    if (!user) return;
+
+    try {
+      const { data: tests, error } = await supabase
+        .from('typing_tests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching typing tests:', error);
+        return;
+      }
+
+      setRecentTests(tests || []);
+      calculateStats(tests || []);
+    } catch (error) {
+      console.error('Error fetching typing tests:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateStats = (tests: TypingTest[]) => {
+    if (tests.length === 0) {
+      setStats({
+        avgWpm: 0,
+        bestWpm: 0,
+        accuracy: 0,
+        testsCompleted: 0,
+        streak: 0
+      });
+      return;
     }
 
-    // Set up real-time subscription
+    const avgWpm = Math.round(tests.reduce((sum, test) => sum + test.wpm, 0) / tests.length);
+    const bestWpm = Math.max(...tests.map(test => test.wpm));
+    const avgAccuracy = Math.round(tests.reduce((sum, test) => sum + test.accuracy, 0) / tests.length);
+    
+    setStats({
+      avgWpm,
+      bestWpm,
+      accuracy: avgAccuracy,
+      testsCompleted: tests.length,
+      streak: calculateStreak(tests)
+    });
+  };
+
+  const calculateStreak = (tests: TypingTest[]) => {
+    // Simple streak calculation - count consecutive days with tests
+    const today = new Date();
+    let streak = 0;
+    const testDates = new Set(tests.map(test => new Date(test.created_at).toDateString()));
+    
+    for (let i = 0; i < 30; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+      
+      if (testDates.has(checkDate.toDateString())) {
+        streak++;
+      } else if (i > 0) {
+        break;
+      }
+    }
+    
+    return streak;
+  };
+
+  const setupRealtimeSubscription = () => {
+    if (!user) return;
+
     const channel = supabase
       .channel('typing_tests_changes')
       .on(
@@ -100,11 +125,15 @@ const Dashboard = () => {
           event: 'INSERT',
           schema: 'public',
           table: 'typing_tests',
-          filter: `user_id=eq.${user?.id}`
+          filter: `user_id=eq.${user.id}`
         },
-        () => {
-          fetchRecentTests();
-          calculateStats();
+        (payload) => {
+          const newTest = payload.new as TypingTest;
+          setRecentTests(prev => {
+            const updatedTests = [newTest, ...prev.slice(0, 9)];
+            calculateStats(updatedTests);
+            return updatedTests;
+          });
         }
       )
       .subscribe();
@@ -112,27 +141,30 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-    if (diffDays === 1) return "Today";
-    if (diffDays === 2) return "Yesterday";
-    if (diffDays <= 7) return `${diffDays - 1} days ago`;
-    return date.toLocaleDateString();
+    if (date.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    } else {
+      const diffTime = Math.abs(today.getTime() - date.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} days ago`;
+    }
   };
 
   const formatDuration = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    if (minutes > 0) {
-      return `${minutes}m ${remainingSeconds}s`;
-    }
-    return `${remainingSeconds}s`;
+    return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
   };
 
   const weakKeys = [
@@ -236,14 +268,27 @@ const Dashboard = () => {
                   <CardDescription>Your latest typing test results</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentTests.length > 0 ? (
-                      recentTests.map((test, index) => (
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[...Array(4)].map((_, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-surface rounded-lg animate-pulse">
+                          <div className="h-4 bg-muted rounded w-20"></div>
+                          <div className="flex space-x-4">
+                            <div className="h-4 bg-muted rounded w-16"></div>
+                            <div className="h-4 bg-muted rounded w-12"></div>
+                            <div className="h-4 bg-muted rounded w-12"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : recentTests.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentTests.map((test) => (
                         <div key={test.id} className="flex items-center justify-between p-3 bg-surface rounded-lg">
                           <div className="flex items-center space-x-3">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
                             <span className="text-sm">{formatDate(test.created_at)}</span>
-                            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
                               {test.language}
                             </span>
                           </div>
@@ -253,15 +298,16 @@ const Dashboard = () => {
                             <span className="text-muted-foreground">{formatDuration(test.test_duration)}</span>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p>No typing tests completed yet.</p>
-                        <p className="text-sm">Start typing to see your results here!</p>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No typing tests completed yet.</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Complete a typing test to see your results here!
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

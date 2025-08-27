@@ -10,7 +10,7 @@ export const Navbar = () => {
   const navItems = [
     { name: "Home", href: "/", icon: Code },
     { name: "Type", href: "/type", icon: Code },
-    { name: "Progressboard", href: "/progressboard", icon: BarChart3 },
+    { name: "Progressboard", href: "/leaderboard", icon: BarChart3 },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
