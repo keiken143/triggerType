@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import TypingPage from "./pages/TypingPage";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,7 +29,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/multiplayer" element={<TypingPage />} />
           <Route path="/progressboard" element={<Dashboard />} />
-          <Route path="/profile" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
           {/* Redirect old leaderboard route to progressboard */}
           <Route path="/leaderboard" element={<Navigate to="/progressboard" replace />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
