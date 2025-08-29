@@ -116,16 +116,36 @@ const Profile = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      // Check if profile exists first
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user.id,
-          display_name: editForm.display_name,
-          username: editForm.username
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error updating profile:', error);
+      let result;
+      if (existingProfile) {
+        // Update existing profile
+        result = await supabase
+          .from('profiles')
+          .update({
+            display_name: editForm.display_name,
+            username: editForm.username
+          })
+          .eq('user_id', user.id);
+      } else {
+        // Insert new profile
+        result = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: editForm.display_name,
+            username: editForm.username
+          });
+      }
+
+      if (result.error) {
+        console.error('Error updating profile:', result.error);
         toast({
           title: "Error",
           description: "Failed to update profile. Please try again.",
@@ -206,17 +226,33 @@ const Profile = () => {
         .getPublicUrl(fileName);
 
       // Update profile with new avatar URL
-      const { error: updateError } = await supabase
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user.id,
-          avatar_url: publicUrl,
-          display_name: profile?.display_name,
-          username: profile?.username
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (updateError) {
-        throw updateError;
+      let updateResult;
+      if (existingProfile) {
+        updateResult = await supabase
+          .from('profiles')
+          .update({
+            avatar_url: publicUrl
+          })
+          .eq('user_id', user.id);
+      } else {
+        updateResult = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            avatar_url: publicUrl,
+            display_name: profile?.display_name,
+            username: profile?.username
+          });
+      }
+
+      if (updateResult.error) {
+        throw updateResult.error;
       }
 
       toast({
