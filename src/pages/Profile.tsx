@@ -62,9 +62,9 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching profile:', error);
         return;
       }
@@ -163,7 +163,7 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
+      <div className="min-h-screen bg-gradient-to-br from-background to-surface">
         <Navbar />
         <div className="container mx-auto px-6 pt-24 pb-12">
           <div className="flex items-center justify-center min-h-[400px]">
@@ -178,7 +178,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background to-surface">
       <div 
         className="fixed inset-0 opacity-5"
         style={{ backgroundImage: "var(--pattern-grid)" }}
@@ -325,7 +325,7 @@ const Profile = () => {
                 <CardDescription>Your typing highlights</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Target className="w-4 h-4 text-primary" />
                     <span className="text-sm">Tests Completed</span>
@@ -333,7 +333,7 @@ const Profile = () => {
                   <span className="font-semibold">{stats.totalTests}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Zap className="w-4 h-4 text-secondary-glow" />
                     <span className="text-sm">Average WPM</span>
@@ -341,7 +341,7 @@ const Profile = () => {
                   <span className="font-semibold">{stats.avgWpm}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Trophy className="w-4 h-4 text-primary" />
                     <span className="text-sm">Best WPM</span>
@@ -357,11 +357,29 @@ const Profile = () => {
                 <CardDescription>Manage your account settings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    toast({
+                      title: "Coming Soon",
+                      description: "Email change functionality will be available soon.",
+                    });
+                  }}
+                >
                   <Mail className="w-4 h-4 mr-2" />
                   Change Email
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    toast({
+                      title: "Coming Soon", 
+                      description: "Password change functionality will be available soon.",
+                    });
+                  }}
+                >
                   <User className="w-4 h-4 mr-2" />
                   Change Password  
                 </Button>
