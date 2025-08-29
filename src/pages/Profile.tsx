@@ -16,7 +16,9 @@ import {
   X,
   Trophy,
   Target,
-  Zap
+  Zap,
+  Upload,
+  Camera
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,6 +48,7 @@ const Profile = () => {
     display_name: '',
     username: ''
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -148,6 +151,92 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "Image size must be less than 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Delete existing avatar if it exists
+      if (profile?.avatar_url) {
+        const existingPath = profile.avatar_url.split('/').pop();
+        if (existingPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${existingPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          avatar_url: publicUrl,
+          display_name: profile?.display_name,
+          username: profile?.username
+        });
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully!"
+      });
+
+      fetchProfile();
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload profile picture. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getInitials = (name: string | null) => {
     if (!name) return user?.email?.charAt(0).toUpperCase() || 'U';
     return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
@@ -235,18 +324,40 @@ const Profile = () => {
               <CardContent className="space-y-6">
                 {/* Avatar Section */}
                 <div className="flex items-center space-x-4">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src={profile?.avatar_url || ''} />
-                    <AvatarFallback className="text-lg">
-                      {getInitials(profile?.display_name)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-20 h-20">
+                      <AvatarImage src={profile?.avatar_url || ''} />
+                      <AvatarFallback className="text-lg">
+                        {getInitials(profile?.display_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <label htmlFor="avatar-upload" className="absolute -bottom-2 -right-2 cursor-pointer">
+                      <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg hover:bg-primary/90 transition-colors">
+                        {uploading ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                        ) : (
+                          <Camera className="w-4 h-4" />
+                        )}
+                      </div>
+                    </label>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                      disabled={uploading}
+                    />
+                  </div>
                   <div>
                     <h3 className="text-lg font-semibold">
                       {profile?.display_name || 'No display name set'}
                     </h3>
                     <p className="text-muted-foreground">
                       @{profile?.username || 'No username set'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Click the camera icon to change your profile picture
                     </p>
                   </div>
                 </div>
