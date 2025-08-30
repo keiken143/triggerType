@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Code, BarChart3, Users, Fingerprint, User, Menu } from "lucide-react";
+import { Code, BarChart3, Users, Fingerprint, User, Menu, Keyboard } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
@@ -29,7 +29,7 @@ export const Navbar = () => {
 
   const navItems = [
     { name: "Home", href: "/", icon: Code },
-    { name: "Type", href: "/type", icon: Code },
+    { name: "Type", href: "/type", icon: Keyboard },
     { name: "Progressboard", href: "/progressboard", icon: BarChart3 },
     { name: "Profile", href: "/profile", icon: User },
   ];
