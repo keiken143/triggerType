@@ -291,7 +291,7 @@ const TypingPage = () => {
     return "text-destructive bg-destructive/10";
   };
 
-  const progress = ((60 - timeLeft) / 60) * 100;
+  const progress = currentText.length > 0 ? (typedText.length / currentText.length) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
