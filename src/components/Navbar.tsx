@@ -179,7 +179,7 @@ export const Navbar = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="pt-4 border-t border-border space-y-2">
+                  <div className="pt-4 border-t border-border space-y-4">
                     <Link to="/login" onClick={() => setIsOpen(false)}>
                       <Button variant="outline" size="sm" className="w-full">
                         Login
