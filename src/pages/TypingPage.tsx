@@ -436,6 +436,11 @@ const TypingPage = () => {
               onChange={handleTextChange}
               placeholder={isTyping ? "Start typing the code..." : `Click Start to begin typing ${selectedLanguage} code`}
               disabled={!isTyping}
+              onPaste={(e) => e.preventDefault()}
+              onCut={(e) => e.preventDefault()}
+              onCopy={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
+              onDragOver={(e) => e.preventDefault()}
               className="w-full h-40 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none font-mono text-sm disabled:opacity-50"
             />
           </CardContent>
