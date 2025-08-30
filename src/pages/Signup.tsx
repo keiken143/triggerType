@@ -14,7 +14,9 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const { signUp, user } = useAuth();
   const navigate = useNavigate();
 
@@ -24,19 +26,53 @@ const Signup = () => {
     }
   }, [user, navigate]);
 
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    if (!name.trim()) {
+      newErrors.name = "Full name is required";
+    }
+
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (!acceptTerms) {
+      newErrors.terms = "You must accept the terms and conditions";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (password !== confirmPassword) {
+    if (!validateForm()) {
       return;
     }
     
     setLoading(true);
+    setErrors({});
     
     const { error } = await signUp(email, password, name);
     
-    if (!error) {
-      // User will get a toast about checking email
+    if (error) {
+      setErrors({ submit: error.message || "Failed to create account. Please try again." });
     }
     
     setLoading(false);
@@ -61,7 +97,13 @@ const Signup = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            <div className="space-y-4">
+            {errors.submit && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive">{errors.submit}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium">
                   Full Name
@@ -75,9 +117,14 @@ const Signup = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="pl-10 bg-surface border-border focus:border-primary"
+                    className={`pl-10 bg-surface border-border focus:border-primary ${
+                      errors.name ? 'border-destructive focus:border-destructive' : ''
+                    }`}
                   />
                 </div>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -93,9 +140,14 @@ const Signup = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="pl-10 bg-surface border-border focus:border-primary"
+                    className={`pl-10 bg-surface border-border focus:border-primary ${
+                      errors.email ? 'border-destructive focus:border-destructive' : ''
+                    }`}
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -107,13 +159,18 @@ const Signup = () => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="Create a password (min. 6 characters)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pl-10 bg-surface border-border focus:border-primary"
+                    className={`pl-10 bg-surface border-border focus:border-primary ${
+                      errors.password ? 'border-destructive focus:border-destructive' : ''
+                    }`}
                   />
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -129,30 +186,39 @@ const Signup = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="pl-10 bg-surface border-border focus:border-primary"
+                    className={`pl-10 bg-surface border-border focus:border-primary ${
+                      errors.confirmPassword ? 'border-destructive focus:border-destructive' : ''
+                    }`}
                   />
                 </div>
-                {password !== confirmPassword && confirmPassword && (
-                  <p className="text-sm text-red-400">Passwords do not match</p>
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive">{errors.confirmPassword}</p>
                 )}
               </div>
               
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="checkbox" 
-                  id="terms" 
-                  className="rounded border-border bg-surface"
-                />
-                <Label htmlFor="terms" className="text-sm text-muted-foreground">
-                  I agree to the <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
-                </Label>
+              <div className="space-y-2">
+                <div className="flex items-start space-x-2">
+                  <input 
+                    type="checkbox" 
+                    id="terms" 
+                    checked={acceptTerms}
+                    onChange={(e) => setAcceptTerms(e.target.checked)}
+                    className={`mt-1 rounded border-border bg-surface ${
+                      errors.terms ? 'border-destructive' : ''
+                    }`}
+                  />
+                  <Label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
+                    I agree to the <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+                  </Label>
+                </div>
+                {errors.terms && (
+                  <p className="text-sm text-destructive">{errors.terms}</p>
+                )}
               </div>
-            </div>
 
-            <form onSubmit={handleSubmit}>
               <Button 
                 type="submit" 
-                disabled={loading || password !== confirmPassword}
+                disabled={loading}
                 className="w-full" 
                 variant="glow" 
                 size="lg"
