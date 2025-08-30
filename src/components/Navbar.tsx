@@ -78,7 +78,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-2">
           <div className="text-xl sm:text-2xl font-bold">
-            <span className="text-foreground">Trig</span>
+            <span className="text-foreground">Trigger</span>
             <span className="text-primary">Type</span>
           </div>
         </Link>

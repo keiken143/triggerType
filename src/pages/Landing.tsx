@@ -69,7 +69,7 @@ const Landing = () => {
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               Type <span className="text-primary">Smarter</span>, Code <span className="text-secondary-glow">Faster</span>
               <br />
-              <span className="text-3xl md:text-5xl">with <span className="text-primary">TrigType</span></span>
+              <span className="text-3xl md:text-5xl">with <span className="text-primary">TriggerType</span></span>
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground mb-4">
@@ -99,7 +99,7 @@ const Landing = () => {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Why Choose <span className="text-primary">TrigType</span>?
+              Why Choose <span className="text-primary">TriggerType</span>?
             </h2>
           </div>
 
@@ -138,7 +138,7 @@ const Landing = () => {
             Ready to Transform Your Typing?
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of developers and professionals who've improved their typing speed and accuracy with TrigType.
+            Join thousands of developers and professionals who've improved their typing speed and accuracy with TriggerType.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/signup">
