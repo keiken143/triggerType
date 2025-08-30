@@ -39,31 +39,28 @@ export const Navbar = () => {
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.href;
-        const isProgressboard = item.name === "Progressboard";
         
         return (
           <Link key={item.name} to={item.href} onClick={() => setIsOpen(false)}>
             <Button
               variant={isActive ? "default" : "ghost"}
               size="sm"
-              className={`w-full md:w-auto flex items-center space-x-2 transition-all duration-300 ${
-                isProgressboard 
-                  ? `relative overflow-hidden group
-                     ${isActive 
-                       ? 'bg-gradient-to-r from-primary to-secondary-glow text-primary-foreground shadow-lg shadow-primary/30' 
-                       : 'hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary-glow/10 hover:shadow-md hover:shadow-primary/20 hover:scale-105'
-                     }
-                     before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent 
-                     before:translate-x-[-100%] before:transition-transform before:duration-700 
-                     hover:before:translate-x-[100%]`
-                  : ''
-              }`}
+              className={`w-full md:w-auto flex items-center space-x-2 transition-all duration-300 
+                relative overflow-hidden group
+                ${isActive 
+                  ? 'bg-gradient-to-r from-primary to-secondary-glow text-primary-foreground shadow-lg shadow-primary/30' 
+                  : 'hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary-glow/10 hover:shadow-md hover:shadow-primary/20 hover:scale-105'
+                }
+                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent 
+                before:translate-x-[-100%] before:transition-transform before:duration-700 
+                hover:before:translate-x-[100%]`
+              }
             >
               <Icon className={`w-4 h-4 transition-transform duration-300 ${
-                isProgressboard && !isActive ? 'group-hover:rotate-12 group-hover:scale-110' : ''
+                !isActive ? 'group-hover:rotate-12 group-hover:scale-110' : ''
               }`} />
-              <span className={isProgressboard && isActive ? 'font-semibold' : ''}>{item.name}</span>
-              {isProgressboard && (
+              <span className={isActive ? 'font-semibold' : ''}>{item.name}</span>
+              {item.name === "Progressboard" && (
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-secondary-glow rounded-full animate-pulse" />
               )}
             </Button>
