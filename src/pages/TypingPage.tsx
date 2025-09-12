@@ -18,7 +18,9 @@ import {
   Code
 } from "lucide-react";
 
-const codeTexts = {
+const typingTexts = {
+  simple: `The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet at least once. It is commonly used for typing practice because it helps improve finger dexterity and familiarity with all keyboard keys. Regular practice with varied sentences like this one can significantly improve your typing speed and accuracy. The more you practice, the better you become at typing without looking at the keyboard. Consistent practice is the key to mastering touch typing skills.`,
+  
   javascript: `function calculateSum(arr) {
   return arr.reduce((sum, num) => sum + num, 0);
 }
@@ -161,8 +163,8 @@ fn main() {
 const TypingPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof codeTexts>("javascript");
-  const [currentText, setCurrentText] = useState(codeTexts.javascript);
+  const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof typingTexts>("simple");
+  const [currentText, setCurrentText] = useState(typingTexts.simple);
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
@@ -254,10 +256,10 @@ const TypingPage = () => {
     setTestCompleted(false);
   };
 
-  const handleLanguageChange = (language: keyof typeof codeTexts) => {
+  const handleLanguageChange = (language: keyof typeof typingTexts) => {
     if (isTyping) return; // Don't allow language change during typing
     setSelectedLanguage(language);
-    setCurrentText(codeTexts[language]);
+    setCurrentText(typingTexts[language]);
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
@@ -366,7 +368,7 @@ const TypingPage = () => {
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Code className="w-5 h-5" />
-              <span>Select Programming Language</span>
+              <span>Select Typing Mode</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -376,9 +378,10 @@ const TypingPage = () => {
               disabled={isTyping}
             >
               <SelectTrigger className="w-full md:w-64">
-                <SelectValue placeholder="Choose a language" />
+                <SelectValue placeholder="Choose typing mode" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="simple">Simple Text</SelectItem>
                 <SelectItem value="javascript">JavaScript</SelectItem>
                 <SelectItem value="typescript">TypeScript</SelectItem>
                 <SelectItem value="python">Python</SelectItem>
@@ -395,7 +398,7 @@ const TypingPage = () => {
         <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Typing Test - {selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span>
+              <span>Typing Test - {selectedLanguage === 'simple' ? 'Simple Text' : selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span>
               <div className="flex space-x-2">
                 {!isTyping ? (
                   <Button onClick={handleStart} variant="default" size="sm">
@@ -418,7 +421,7 @@ const TypingPage = () => {
           <CardContent className="space-y-6">
             {/* Text to type */}
             <div className="p-6 bg-surface rounded-lg border border-border/50 overflow-auto">
-              <pre className="text-sm leading-relaxed font-mono whitespace-pre-wrap">
+              <pre className={`text-sm leading-relaxed whitespace-pre-wrap ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}>
                 {currentText.split('').map((char, index) => (
                   <span
                     key={index}
@@ -434,14 +437,14 @@ const TypingPage = () => {
             <textarea
               value={typedText}
               onChange={handleTextChange}
-              placeholder={isTyping ? "Start typing the code..." : `Click Start to begin typing ${selectedLanguage} code`}
+              placeholder={isTyping ? `Start typing the ${selectedLanguage === 'simple' ? 'text' : 'code'}...` : `Click Start to begin typing ${selectedLanguage === 'simple' ? 'simple text' : selectedLanguage + ' code'}`}
               disabled={!isTyping}
               onPaste={(e) => e.preventDefault()}
               onCut={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
               onDrop={(e) => e.preventDefault()}
               onDragOver={(e) => e.preventDefault()}
-              className="w-full h-40 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none font-mono text-sm disabled:opacity-50"
+              className={`w-full h-40 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none text-sm disabled:opacity-50 ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}
             />
           </CardContent>
         </Card>
@@ -453,14 +456,14 @@ const TypingPage = () => {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-muted-foreground">
-              <li>• Select your preferred programming language from the dropdown</li>
-              <li>• Click "Start" to begin the coding typing test</li>
-              <li>• Type the code exactly as shown above, including all syntax</li>
+              <li>• Choose between Simple Text or Programming Language typing modes</li>
+              <li>• Click "Start" to begin the typing test</li>
+              <li>• Type the text exactly as shown above, including all punctuation and syntax</li>
               <li>• Correct characters will be highlighted in blue</li>
               <li>• Incorrect characters will be highlighted in red</li>
               <li>• Your WPM and accuracy will be calculated in real-time</li>
               <li>• The test lasts for 60 seconds</li>
-              <li>• You cannot change the language during an active test</li>
+              <li>• You cannot change the mode during an active test</li>
             </ul>
           </CardContent>
         </Card>
