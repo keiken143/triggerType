@@ -23,6 +23,9 @@ interface TypingTest {
   test_duration: number;
   language: string;
   created_at: string;
+  errors: number;
+  correct_characters: number;
+  character_count: number;
 }
 
 const Dashboard = () => {
@@ -417,48 +420,306 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="analysis" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
+              {/* Performance Trends */}
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                 <CardHeader>
                   <CardTitle>Performance Analysis</CardTitle>
-                  <CardDescription>AI-powered insights into your typing patterns</CardDescription>
+                  <CardDescription>How you perform in typing tests</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="p-4 bg-primary/10 rounded-lg">
-                    <h4 className="font-medium text-primary mb-2">Strength</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Your typing speed has improved 15% over the last month, particularly on common letter combinations.
-                    </p>
-                  </div>
-                  <div className="p-4 bg-secondary-glow/10 rounded-lg">
-                    <h4 className="font-medium text-secondary-glow mb-2">Opportunity</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Focus on number row accuracy - practicing 2-3 minutes daily could improve overall accuracy by 3%.
-                    </p>
-                  </div>
+                  {recentTests.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 bg-surface rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-1">Speed Trend</p>
+                          <p className="text-2xl font-bold">
+                            {(() => {
+                              if (recentTests.length < 2) return "N/A";
+                              const recent = recentTests.slice(0, Math.min(3, recentTests.length));
+                              const older = recentTests.slice(Math.min(3, recentTests.length), Math.min(6, recentTests.length));
+                              if (older.length === 0) return "New";
+                              const recentAvg = recent.reduce((sum, t) => sum + t.wpm, 0) / recent.length;
+                              const olderAvg = older.reduce((sum, t) => sum + t.wpm, 0) / older.length;
+                              const changeNum = ((recentAvg - olderAvg) / olderAvg * 100);
+                              const change = changeNum.toFixed(1);
+                              return `${changeNum > 0 ? '+' : ''}${change}%`;
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Last 3 vs previous 3 tests</p>
+                        </div>
+
+                        <div className="p-4 bg-surface rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-1">Consistency</p>
+                          <p className="text-2xl font-bold">
+                            {(() => {
+                              if (recentTests.length < 2) return "N/A";
+                              const wpms = recentTests.map(t => t.wpm);
+                              const avg = wpms.reduce((a, b) => a + b, 0) / wpms.length;
+                              const variance = wpms.reduce((sum, wpm) => sum + Math.pow(wpm - avg, 2), 0) / wpms.length;
+                              const stdDev = Math.sqrt(variance);
+                              const cv = (stdDev / avg * 100).toFixed(1);
+                              return parseFloat(cv) < 10 ? "High" : parseFloat(cv) < 20 ? "Medium" : "Low";
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Speed variation across tests</p>
+                        </div>
+
+                        <div className="p-4 bg-surface rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-1">Best Time of Day</p>
+                          <p className="text-2xl font-bold">
+                            {(() => {
+                              const hours = recentTests.map(t => new Date(t.created_at).getHours());
+                              const bestHour = hours.reduce((acc, hour, idx) => {
+                                if (!acc[hour]) acc[hour] = [];
+                                acc[hour].push(recentTests[idx].wpm);
+                                return acc;
+                              }, {} as Record<number, number[]>);
+                              
+                              let maxAvg = 0;
+                              let bestTime = "N/A";
+                              Object.entries(bestHour).forEach(([hour, wpms]) => {
+                                const avg = wpms.reduce((a, b) => a + b, 0) / wpms.length;
+                                if (avg > maxAvg) {
+                                  maxAvg = avg;
+                                  const h = parseInt(hour);
+                                  bestTime = h < 12 ? `${h} AM` : h === 12 ? "12 PM" : `${h-12} PM`;
+                                }
+                              });
+                              return bestTime;
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Peak performance hour</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 mt-6">
+                        <h4 className="font-medium">Performance Insights</h4>
+                        
+                        {/* Speed Analysis */}
+                        <div className="p-4 bg-primary/10 rounded-lg">
+                          <h5 className="font-medium text-primary mb-2 flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4" />
+                            Speed Pattern
+                          </h5>
+                          <p className="text-sm text-muted-foreground">
+                            {(() => {
+                              if (recentTests.length < 3) return "Complete more tests to see detailed speed analysis.";
+                              const avgWpm = stats.avgWpm;
+                              const bestWpm = stats.bestWpm;
+                              const gap = bestWpm - avgWpm;
+                              
+                              if (gap < 5) {
+                                return `Excellent consistency! Your average (${avgWpm} WPM) is very close to your best (${bestWpm} WPM), showing reliable performance.`;
+                              } else if (gap < 15) {
+                                return `Good performance! Your average is ${avgWpm} WPM with a best of ${bestWpm} WPM. You're ${gap} WPM away from your peak - keep practicing to maintain top speed consistently.`;
+                              } else {
+                                return `Variable performance detected. Your best is ${bestWpm} WPM but average is ${avgWpm} WPM (${gap} WPM difference). Focus on consistency by practicing at a comfortable pace.`;
+                              }
+                            })()}
+                          </p>
+                        </div>
+
+                        {/* Language Analysis */}
+                        {(() => {
+                          const languages = recentTests.reduce((acc, test) => {
+                            if (!acc[test.language]) acc[test.language] = { count: 0, totalWpm: 0, totalAcc: 0 };
+                            acc[test.language].count++;
+                            acc[test.language].totalWpm += test.wpm;
+                            acc[test.language].totalAcc += test.accuracy;
+                            return acc;
+                          }, {} as Record<string, { count: number; totalWpm: number; totalAcc: number }>);
+
+                          if (Object.keys(languages).length > 1) {
+                            const langStats = Object.entries(languages).map(([lang, stats]) => ({
+                              lang,
+                              avgWpm: Math.round(stats.totalWpm / stats.count),
+                              avgAcc: Math.round(stats.totalAcc / stats.count),
+                              count: stats.count
+                            })).sort((a, b) => b.avgWpm - a.avgWpm);
+
+                            return (
+                              <div className="p-4 bg-secondary-glow/10 rounded-lg">
+                                <h5 className="font-medium text-secondary-glow mb-2 flex items-center gap-2">
+                                  <Zap className="w-4 h-4" />
+                                  Language Performance
+                                </h5>
+                                <p className="text-sm text-muted-foreground">
+                                  You perform best in <span className="font-medium">{langStats[0].lang}</span> ({langStats[0].avgWpm} WPM avg).
+                                  {langStats.length > 1 && ` Your ${langStats[langStats.length-1].lang} speed is ${langStats[0].avgWpm - langStats[langStats.length-1].avgWpm} WPM lower - consider more practice in that mode.`}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Complete typing tests to see performance analysis.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
+              {/* Error Analysis */}
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                 <CardHeader>
-                  <CardTitle>Recommendations</CardTitle>
-                  <CardDescription>Personalized practice suggestions</CardDescription>
+                  <CardTitle>Error Analysis</CardTitle>
+                  <CardDescription>Understanding your typing mistakes</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-start space-x-3 p-3 bg-surface rounded-lg">
-                    <Clock className="w-5 h-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Daily Practice</p>
-                      <p className="text-xs text-muted-foreground">Practice 15-20 minutes daily for optimal improvement</p>
+                <CardContent className="space-y-4">
+                  {recentTests.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="p-4 bg-surface rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-1">Total Errors</p>
+                          <p className="text-2xl font-bold">
+                            {recentTests.reduce((sum, test) => sum + (test.errors || 0), 0)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Across all recent tests</p>
+                        </div>
+
+                        <div className="p-4 bg-surface rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-1">Error Rate</p>
+                          <p className="text-2xl font-bold">
+                            {(() => {
+                              const totalChars = recentTests.reduce((sum, test) => sum + (test.character_count || 0), 0);
+                              const totalErrors = recentTests.reduce((sum, test) => sum + (test.errors || 0), 0);
+                              return totalChars > 0 ? `${((totalErrors / totalChars) * 100).toFixed(1)}%` : "0%";
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Errors per character typed</p>
+                        </div>
+
+                        <div className="p-4 bg-surface rounded-lg">
+                          <p className="text-sm text-muted-foreground mb-1">Error Trend</p>
+                          <p className="text-2xl font-bold">
+                            {(() => {
+                              if (recentTests.length < 2) return "N/A";
+                              const recent = recentTests.slice(0, Math.min(3, recentTests.length));
+                              const older = recentTests.slice(Math.min(3, recentTests.length), Math.min(6, recentTests.length));
+                              if (older.length === 0) return "New";
+                              
+                              const recentErrors = recent.reduce((sum, t) => sum + (t.errors || 0), 0) / recent.length;
+                              const olderErrors = older.reduce((sum, t) => sum + (t.errors || 0), 0) / older.length;
+                              const change = olderErrors - recentErrors;
+                              
+                              return change > 0 ? "↓ Improving" : change < 0 ? "↑ Increasing" : "→ Stable";
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Recent vs previous tests</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 mt-6">
+                        <h4 className="font-medium">Error Insights</h4>
+                        
+                        {/* Error Pattern Analysis */}
+                        <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                          <h5 className="font-medium text-destructive mb-2 flex items-center gap-2">
+                            <Target className="w-4 h-4" />
+                            Accuracy Pattern
+                          </h5>
+                          <p className="text-sm text-muted-foreground">
+                            {(() => {
+                              const avgAccuracy = stats.accuracy;
+                              const totalErrors = recentTests.reduce((sum, test) => sum + (test.errors || 0), 0);
+                              const avgErrorsPerTest = totalErrors / recentTests.length;
+                              
+                              if (avgAccuracy >= 95) {
+                                return `Excellent accuracy at ${avgAccuracy}%! You make an average of ${avgErrorsPerTest.toFixed(1)} errors per test. Keep maintaining this high standard.`;
+                              } else if (avgAccuracy >= 90) {
+                                return `Good accuracy at ${avgAccuracy}%. You average ${avgErrorsPerTest.toFixed(1)} errors per test. Slow down slightly when you notice mistakes appearing to push past 95%.`;
+                              } else if (avgAccuracy >= 85) {
+                                return `Your accuracy is ${avgAccuracy}% with ${avgErrorsPerTest.toFixed(1)} errors per test on average. Focus on accuracy over speed - try reducing your typing speed by 10-15% to build better habits.`;
+                              } else {
+                                return `Accuracy needs attention at ${avgAccuracy}%. You're averaging ${avgErrorsPerTest.toFixed(1)} errors per test. Practice slowly with a focus on correct keystrokes rather than speed.`;
+                              }
+                            })()}
+                          </p>
+                        </div>
+
+                        {/* Speed vs Accuracy Trade-off */}
+                        <div className="p-4 bg-surface rounded-lg border border-border">
+                          <h5 className="font-medium mb-2 flex items-center gap-2">
+                            <Activity className="w-4 h-4" />
+                            Speed vs Accuracy Balance
+                          </h5>
+                          <p className="text-sm text-muted-foreground">
+                            {(() => {
+                              const avgWpm = stats.avgWpm;
+                              const avgAccuracy = stats.accuracy;
+                              
+                              if (avgAccuracy >= 95 && avgWpm >= 60) {
+                                return "Perfect balance! You're maintaining high accuracy while typing fast. Continue challenging yourself with harder texts.";
+                              } else if (avgAccuracy >= 95) {
+                                return `Your accuracy (${avgAccuracy}%) is excellent, but speed can improve. Gradually increase your typing pace while maintaining accuracy.`;
+                              } else if (avgWpm >= 60) {
+                                return `You're fast at ${avgWpm} WPM, but accuracy is ${avgAccuracy}%. Slow down 10-20% and focus on precision - speed will naturally follow.`;
+                              } else {
+                                return `You're building foundations. Focus on accuracy first (aim for 95%+), then gradually increase speed. Quality over speed at this stage.`;
+                              }
+                            })()}
+                          </p>
+                        </div>
+
+                        {/* Recommendations */}
+                        <div className="p-4 bg-primary/10 rounded-lg">
+                          <h5 className="font-medium text-primary mb-2">Personalized Recommendations</h5>
+                          <ul className="text-sm text-muted-foreground space-y-2">
+                            {(() => {
+                              const recommendations = [];
+                              const avgAccuracy = stats.accuracy;
+                              const avgWpm = stats.avgWpm;
+                              
+                              if (avgAccuracy < 90) {
+                                recommendations.push("Practice with a focus on accuracy - aim for 95%+ before prioritizing speed");
+                              }
+                              
+                              if (recentTests.length < 5) {
+                                recommendations.push("Complete more tests to get detailed personalized insights");
+                              }
+                              
+                              const errorTrend = (() => {
+                                if (recentTests.length < 4) return 0;
+                                const recent = recentTests.slice(0, 2);
+                                const older = recentTests.slice(2, 4);
+                                const recentErrors = recent.reduce((sum, t) => sum + (t.errors || 0), 0) / recent.length;
+                                const olderErrors = older.reduce((sum, t) => sum + (t.errors || 0), 0) / older.length;
+                                return recentErrors - olderErrors;
+                              })();
+                              
+                              if (errorTrend > 2) {
+                                recommendations.push("Your recent error rate is increasing - take breaks between sessions to avoid fatigue");
+                              }
+                              
+                              if (stats.streak < 3) {
+                                recommendations.push("Practice daily to build muscle memory and improve consistency");
+                              }
+                              
+                              if (recommendations.length === 0) {
+                                recommendations.push("Great job! Keep practicing regularly to maintain your performance");
+                                recommendations.push("Try more challenging texts to push your boundaries");
+                              }
+                              
+                              return recommendations.map((rec, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="text-primary mt-0.5">•</span>
+                                  <span>{rec}</span>
+                                </li>
+                              ));
+                            })()}
+                          </ul>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Complete typing tests to see error analysis.</p>
                     </div>
-                  </div>
-                  <div className="flex items-start space-x-3 p-3 bg-surface rounded-lg">
-                    <Target className="w-5 h-5 text-secondary-glow mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Focus Areas</p>
-                      <p className="text-xs text-muted-foreground">Work on Q, Z, X keys to improve overall accuracy</p>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
