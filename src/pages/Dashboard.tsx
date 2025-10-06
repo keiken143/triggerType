@@ -620,60 +620,283 @@ const Dashboard = () => {
                             })()}
                           </p>
                         </div>
-
-                        {/* Recommendations */}
-                        <div className="p-4 bg-primary/10 rounded-lg">
-                          <h5 className="font-medium text-primary mb-2">Personalized Recommendations</h5>
-                          <ul className="text-sm text-muted-foreground space-y-2">
-                            {(() => {
-                              const recommendations = [];
-                              const avgAccuracy = stats.accuracy;
-                              const avgWpm = stats.avgWpm;
-                              
-                              if (avgAccuracy < 90) {
-                                recommendations.push("Practice with a focus on accuracy - aim for 95%+ before prioritizing speed");
-                              }
-                              
-                              if (recentTests.length < 5) {
-                                recommendations.push("Complete more tests to get detailed personalized insights");
-                              }
-                              
-                              const errorTrend = (() => {
-                                if (recentTests.length < 4) return 0;
-                                const recent = recentTests.slice(0, 2);
-                                const older = recentTests.slice(2, 4);
-                                const recentErrors = recent.reduce((sum, t) => sum + (t.errors || 0), 0) / recent.length;
-                                const olderErrors = older.reduce((sum, t) => sum + (t.errors || 0), 0) / older.length;
-                                return recentErrors - olderErrors;
-                              })();
-                              
-                              if (errorTrend > 2) {
-                                recommendations.push("Your recent error rate is increasing - take breaks between sessions to avoid fatigue");
-                              }
-                              
-                              if (stats.streak < 3) {
-                                recommendations.push("Practice daily to build muscle memory and improve consistency");
-                              }
-                              
-                              if (recommendations.length === 0) {
-                                recommendations.push("Great job! Keep practicing regularly to maintain your performance");
-                                recommendations.push("Try more challenging texts to push your boundaries");
-                              }
-                              
-                              return recommendations.map((rec, idx) => (
-                                <li key={idx} className="flex items-start gap-2">
-                                  <span className="text-primary mt-0.5">•</span>
-                                  <span>{rec}</span>
-                                </li>
-                              ));
-                            })()}
-                          </ul>
-                        </div>
                       </div>
                     </>
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-muted-foreground">Complete typing tests to see error analysis.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Detailed Mistakes & Solutions */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle>Mistakes Found & Solutions</CardTitle>
+                  <CardDescription>Specific problems identified and how to fix them</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {recentTests.length > 0 ? (
+                    <>
+                      {/* Common Mistakes Identified */}
+                      <div className="space-y-3">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Target className="w-5 h-5 text-destructive" />
+                          Common Mistakes Identified
+                        </h4>
+                        
+                        <div className="grid grid-cols-1 gap-3">
+                          {/* Mistake 1: Speed rushing */}
+                          {stats.accuracy < 90 && stats.avgWpm > 50 && (
+                            <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-destructive/10 rounded">
+                                  <Zap className="w-4 h-4 text-destructive" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-medium text-destructive mb-1">Rushing Through Text</h5>
+                                  <p className="text-sm text-muted-foreground">
+                                    You're typing at {stats.avgWpm} WPM but accuracy is {stats.accuracy}%. 
+                                    This indicates you're prioritizing speed over precision, leading to frequent errors.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Mistake 2: Inconsistent performance */}
+                          {(() => {
+                            if (recentTests.length < 3) return null;
+                            const gap = stats.bestWpm - stats.avgWpm;
+                            if (gap > 15) {
+                              return (
+                                <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+                                  <div className="flex items-start gap-3">
+                                    <div className="p-2 bg-destructive/10 rounded">
+                                      <Activity className="w-4 h-4 text-destructive" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h5 className="font-medium text-destructive mb-1">Inconsistent Performance</h5>
+                                      <p className="text-sm text-muted-foreground">
+                                        Your performance varies significantly (Best: {stats.bestWpm} WPM, Avg: {stats.avgWpm} WPM, Gap: {gap} WPM). 
+                                        This suggests irregular practice habits or improper typing posture.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {/* Mistake 3: Low accuracy */}
+                          {stats.accuracy < 85 && (
+                            <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-destructive/10 rounded">
+                                  <Target className="w-4 h-4 text-destructive" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-medium text-destructive mb-1">Low Accuracy Rate</h5>
+                                  <p className="text-sm text-muted-foreground">
+                                    Your accuracy is {stats.accuracy}%, which is below the recommended 90% threshold. 
+                                    This indicates fundamental issues with finger placement or unfamiliarity with key positions.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Mistake 4: Increasing errors */}
+                          {(() => {
+                            if (recentTests.length < 4) return null;
+                            const recent = recentTests.slice(0, 2);
+                            const older = recentTests.slice(2, 4);
+                            const recentErrors = recent.reduce((sum, t) => sum + (t.errors || 0), 0) / recent.length;
+                            const olderErrors = older.reduce((sum, t) => sum + (t.errors || 0), 0) / older.length;
+                            
+                            if (recentErrors > olderErrors + 2) {
+                              return (
+                                <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+                                  <div className="flex items-start gap-3">
+                                    <div className="p-2 bg-destructive/10 rounded">
+                                      <TrendingUp className="w-4 h-4 text-destructive" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <h5 className="font-medium text-destructive mb-1">Error Rate Increasing</h5>
+                                      <p className="text-sm text-muted-foreground">
+                                        Your recent tests show {recentErrors.toFixed(1)} errors on average compared to {olderErrors.toFixed(1)} in previous tests. 
+                                        This suggests fatigue or developing bad habits.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {/* Mistake 5: Low practice frequency */}
+                          {stats.streak < 2 && (
+                            <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-lg">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-destructive/10 rounded">
+                                  <Calendar className="w-4 h-4 text-destructive" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-medium text-destructive mb-1">Irregular Practice Schedule</h5>
+                                  <p className="text-sm text-muted-foreground">
+                                    Your practice streak is only {stats.streak} day(s). 
+                                    Irregular practice prevents muscle memory development and limits improvement.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* All good message */}
+                          {stats.accuracy >= 90 && stats.avgWpm > 40 && (stats.bestWpm - stats.avgWpm) <= 15 && stats.streak >= 2 && (
+                            <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-primary/10 rounded">
+                                  <Trophy className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-medium text-primary mb-1">Great Performance!</h5>
+                                  <p className="text-sm text-muted-foreground">
+                                    No major issues detected. You're maintaining good accuracy ({stats.accuracy}%), 
+                                    consistent speed ({stats.avgWpm} WPM), and regular practice. Keep it up!
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Solutions & Practice Tips */}
+                      <div className="space-y-3 mt-6">
+                        <h4 className="font-medium flex items-center gap-2">
+                          <Zap className="w-5 h-5 text-primary" />
+                          Solutions & Practice Tips
+                        </h4>
+
+                        <div className="grid grid-cols-1 gap-3">
+                          {/* Solution 1: For low accuracy */}
+                          {stats.accuracy < 90 && (
+                            <div className="p-4 bg-primary/10 rounded-lg">
+                              <h5 className="font-medium text-primary mb-2">🎯 Improve Accuracy</h5>
+                              <ul className="text-sm text-muted-foreground space-y-2">
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Slow Down:</strong> Reduce your typing speed by 25-30% and focus on hitting the correct keys</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Practice Proper Form:</strong> Keep your fingers on home row (ASDF JKL;) and use the correct finger for each key</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Drill Problem Keys:</strong> Identify keys you frequently miss and practice them individually for 5 minutes daily</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Don't Look at Keyboard:</strong> Train yourself to touch type without looking down - this builds proper muscle memory</span>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Solution 2: For speed improvement */}
+                          {stats.accuracy >= 95 && stats.avgWpm < 60 && (
+                            <div className="p-4 bg-primary/10 rounded-lg">
+                              <h5 className="font-medium text-primary mb-2">⚡ Increase Speed</h5>
+                              <ul className="text-sm text-muted-foreground space-y-2">
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Progressive Overload:</strong> Try to type 5% faster each week while maintaining 95%+ accuracy</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Rhythm Practice:</strong> Use a metronome or music to develop consistent typing rhythm</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Word Chunks:</strong> Focus on typing common word patterns as single units rather than individual letters</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-primary mt-1">•</span>
+                                  <span><strong>Challenge Yourself:</strong> Practice with more complex texts that include numbers and punctuation</span>
+                                </li>
+                              </ul>
+                            </div>
+                          )}
+
+                          {/* Solution 3: For consistency */}
+                          {(() => {
+                            if (recentTests.length < 3) return null;
+                            const gap = stats.bestWpm - stats.avgWpm;
+                            if (gap > 15) {
+                              return (
+                                <div className="p-4 bg-primary/10 rounded-lg">
+                                  <h5 className="font-medium text-primary mb-2">📊 Build Consistency</h5>
+                                  <ul className="text-sm text-muted-foreground space-y-2">
+                                    <li className="flex items-start gap-2">
+                                      <span className="text-primary mt-1">•</span>
+                                      <span><strong>Daily Practice:</strong> Practice at the same time each day for 15-20 minutes to build routine</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                      <span className="text-primary mt-1">•</span>
+                                      <span><strong>Proper Ergonomics:</strong> Ensure your chair height, desk position, and monitor angle are optimal</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                      <span className="text-primary mt-1">•</span>
+                                      <span><strong>Warm Up:</strong> Start each session with 2-3 minutes of easy text before attempting full-speed tests</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                      <span className="text-primary mt-1">•</span>
+                                      <span><strong>Avoid Fatigue:</strong> Take 5-minute breaks between intense practice sessions</span>
+                                    </li>
+                                  </ul>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {/* Solution 4: General improvement tips */}
+                          <div className="p-4 bg-secondary-glow/10 rounded-lg">
+                            <h5 className="font-medium text-secondary-glow mb-2">💡 General Tips for Excellence</h5>
+                            <ul className="text-sm text-muted-foreground space-y-2">
+                              <li className="flex items-start gap-2">
+                                <span className="text-secondary-glow mt-1">•</span>
+                                <span><strong>Set Realistic Goals:</strong> Aim for gradual improvement - 5 WPM increase per month is excellent progress</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-secondary-glow mt-1">•</span>
+                                <span><strong>Track Your Progress:</strong> Review this dashboard weekly to identify trends and adjust your practice</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-secondary-glow mt-1">•</span>
+                                <span><strong>Vary Your Practice:</strong> Switch between different text types (quotes, stories, code) to build versatility</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-secondary-glow mt-1">•</span>
+                                <span><strong>Stay Motivated:</strong> Celebrate small wins and remember that muscle memory takes time to develop</span>
+                              </li>
+                              <li className="flex items-start gap-2">
+                                <span className="text-secondary-glow mt-1">•</span>
+                                <span><strong>Practice Mindfully:</strong> Focus on quality practice rather than mindless repetition - be aware of your mistakes</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">Complete typing tests to see detailed mistake analysis and solutions.</p>
                     </div>
                   )}
                 </CardContent>
