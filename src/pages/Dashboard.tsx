@@ -36,7 +36,8 @@ const Dashboard = () => {
     bestWpm: 0,
     accuracy: 0,
     testsCompleted: 0,
-    streak: 0
+    streak: 0,
+    weeklyPracticeMinutes: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -79,7 +80,8 @@ const Dashboard = () => {
         bestWpm: 0,
         accuracy: 0,
         testsCompleted: 0,
-        streak: 0
+        streak: 0,
+        weeklyPracticeMinutes: 0
       });
       return;
     }
@@ -88,12 +90,16 @@ const Dashboard = () => {
     const bestWpm = Math.max(...tests.map(test => test.wpm));
     const avgAccuracy = Math.round(tests.reduce((sum, test) => sum + test.accuracy, 0) / tests.length);
     
+    // Calculate weekly practice time
+    const weeklyPracticeMinutes = calculateWeeklyPractice(tests);
+    
     setStats({
       avgWpm,
       bestWpm,
       accuracy: avgAccuracy,
       testsCompleted: tests.length,
-      streak: calculateStreak(tests)
+      streak: calculateStreak(tests),
+      weeklyPracticeMinutes
     });
   };
 
@@ -115,6 +121,24 @@ const Dashboard = () => {
     }
     
     return streak;
+  };
+
+  const calculateWeeklyPractice = (tests: TypingTest[]) => {
+    // Get start of current week (Monday)
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust when day is Sunday
+    const weekStart = new Date(today.setDate(diff));
+    weekStart.setHours(0, 0, 0, 0);
+    
+    // Filter tests from this week and sum their durations
+    const weeklyTests = tests.filter(test => {
+      const testDate = new Date(test.created_at);
+      return testDate >= weekStart;
+    });
+    
+    const totalSeconds = weeklyTests.reduce((sum, test) => sum + test.test_duration, 0);
+    return Math.round(totalSeconds / 60); // Convert to minutes
   };
 
   const setupRealtimeSubscription = () => {
@@ -340,10 +364,10 @@ const Dashboard = () => {
                   
                   <div>
                     <div className="flex justify-between text-sm mb-2">
-                      <span>Daily Practice (30 min)</span>
-                      <span>22/30 min</span>
+                      <span>Weekly Practice (180 min)</span>
+                      <span>{stats.weeklyPracticeMinutes}/180 min</span>
                     </div>
-                    <Progress value={73} className="h-2" />
+                    <Progress value={(stats.weeklyPracticeMinutes / 180) * 100} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
