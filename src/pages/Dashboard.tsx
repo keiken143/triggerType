@@ -252,10 +252,8 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="biometrics">Biometrics</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="analysis">Analysis</TabsTrigger>
           </TabsList>
 
@@ -352,72 +350,6 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="biometrics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Keystroke Dynamics */}
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardHeader>
-                  <CardTitle>Keystroke Dynamics</CardTitle>
-                  <CardDescription>Your unique typing fingerprint</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Avg Hold Time</span>
-                    <span className="text-sm font-mono">127ms</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Avg Transition Time</span>
-                    <span className="text-sm font-mono">89ms</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Typing Rhythm</span>
-                    <span className="text-sm font-mono">Consistent</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Hand Preference</span>
-                    <span className="text-sm font-mono">Right: 52%</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Weak Keys */}
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardHeader>
-                  <CardTitle>Keys to Improve</CardTitle>
-                  <CardDescription>Focus on these keys for better accuracy</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {weakKeys.map((key, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-destructive/20 rounded flex items-center justify-center text-sm font-mono">
-                            {key.key}
-                          </div>
-                          <span className="text-sm">Accuracy: {key.accuracy}%</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{key.frequency} hits</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="progress" className="space-y-6">
-            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle>Progress Charts</CardTitle>
-                <CardDescription>Visualize your typing improvement over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center bg-surface rounded-lg border-2 border-dashed border-border">
-                  <p className="text-muted-foreground">Progress charts will be displayed here</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="analysis" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
