@@ -276,9 +276,19 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="analysis">Analysis</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-surface/50 backdrop-blur-sm p-1">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analysis"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+            >
+              Analysis
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
