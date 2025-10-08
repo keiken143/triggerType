@@ -133,20 +133,6 @@ const Login = () => {
               </Button>
             </form>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <Separator className="w-full" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            <Button variant="outline" className="w-full" size="lg">
-              <Github className="w-4 h-4 mr-2" />
-              Continue with GitHub
-            </Button>
-
             <div className="text-center text-sm">
               <span className="text-muted-foreground">Don't have an account? </span>
               <Link to="/signup" className="text-primary font-medium hover:underline">
