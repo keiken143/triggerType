@@ -76,8 +76,24 @@ const Dashboard = () => {
         return;
       }
 
-      setRecentTests(tests || []);
-      calculateStats(tests || []);
+      // Remove duplicates based on key properties
+      const uniqueTests = tests?.reduce((acc: TypingTest[], test) => {
+        const isDuplicate = acc.some(t => 
+          t.wpm === test.wpm &&
+          t.accuracy === test.accuracy &&
+          t.test_duration === test.test_duration &&
+          t.language === test.language &&
+          Math.abs(new Date(t.created_at).getTime() - new Date(test.created_at).getTime()) < 60000 // Within 1 minute
+        );
+        
+        if (!isDuplicate) {
+          acc.push(test);
+        }
+        return acc;
+      }, []) || [];
+
+      setRecentTests(uniqueTests);
+      calculateStats(uniqueTests);
     } catch (error) {
       console.error('Error fetching typing tests:', error);
     } finally {
