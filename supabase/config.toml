@@ -2,3 +2,6 @@ project_id = "hyingfjpzuswqivsxoam"
 
 [functions.analyze-typing-errors]
 verify_jwt = true
+
+[functions.generate-code]
+verify_jwt = false

@@ -15,7 +15,8 @@ import {
   Target, 
   Zap,
   TrendingUp,
-  Code
+  Code,
+  Sparkles
 } from "lucide-react";
 
 const typingTexts = {
@@ -169,6 +170,8 @@ const TypingPage = () => {
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [testCompleted, setTestCompleted] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [customTopic, setCustomTopic] = useState("");
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -264,6 +267,58 @@ const TypingPage = () => {
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
+  };
+
+  const handleGenerateCode = async () => {
+    if (selectedLanguage === 'simple') {
+      toast({
+        title: "Not Available",
+        description: "AI code generation is only available for programming languages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-code', {
+        body: { 
+          language: selectedLanguage,
+          topic: customTopic.trim() || undefined
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast({
+          title: "Error",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCurrentText(data.code);
+      setTypedText("");
+      setWpm(0);
+      setAccuracy(100);
+      setTestCompleted(false);
+      
+      toast({
+        title: "Code Generated!",
+        description: "AI has generated a new code snippet for you to practice.",
+      });
+    } catch (error) {
+      console.error('Error generating code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate code. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -371,26 +426,59 @@ const TypingPage = () => {
               <span>Select Typing Mode</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Select 
-              value={selectedLanguage} 
-              onValueChange={handleLanguageChange}
-              disabled={isTyping}
-            >
-              <SelectTrigger className="w-full md:w-64">
-                <SelectValue placeholder="Choose typing mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="simple">Simple Text</SelectItem>
-                <SelectItem value="javascript">JavaScript</SelectItem>
-                <SelectItem value="typescript">TypeScript</SelectItem>
-                <SelectItem value="python">Python</SelectItem>
-                <SelectItem value="java">Java</SelectItem>
-                <SelectItem value="csharp">C#</SelectItem>
-                <SelectItem value="cpp">C++</SelectItem>
-                <SelectItem value="rust">Rust</SelectItem>
-              </SelectContent>
-            </Select>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <Select 
+                value={selectedLanguage} 
+                onValueChange={handleLanguageChange}
+                disabled={isTyping}
+              >
+                <SelectTrigger className="w-full md:w-64">
+                  <SelectValue placeholder="Choose typing mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simple">Simple Text</SelectItem>
+                  <SelectItem value="javascript">JavaScript</SelectItem>
+                  <SelectItem value="typescript">TypeScript</SelectItem>
+                  <SelectItem value="python">Python</SelectItem>
+                  <SelectItem value="java">Java</SelectItem>
+                  <SelectItem value="csharp">C#</SelectItem>
+                  <SelectItem value="cpp">C++</SelectItem>
+                  <SelectItem value="rust">Rust</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedLanguage !== 'simple' && (
+              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <span className="font-medium text-sm">AI Code Generator</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Generate custom code snippets using AI for typing practice
+                </p>
+                <div className="flex flex-col md:flex-row gap-2">
+                  <input
+                    type="text"
+                    placeholder="Optional: Enter a topic (e.g., 'sorting algorithm')"
+                    value={customTopic}
+                    onChange={(e) => setCustomTopic(e.target.value)}
+                    disabled={isTyping || isGenerating}
+                    className="flex-1 px-3 py-2 bg-surface border border-border rounded-md text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                  />
+                  <Button
+                    onClick={handleGenerateCode}
+                    disabled={isTyping || isGenerating}
+                    variant="default"
+                    size="sm"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {isGenerating ? 'Generating...' : 'Generate Code'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
