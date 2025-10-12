@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.generate-code]
 verify_jwt = false
+
+[functions.analyze-performance]
+verify_jwt = true

@@ -52,6 +52,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [aiAnalysis, setAiAnalysis] = useState<string>("");
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [performanceAnalysis, setPerformanceAnalysis] = useState<string>("");
+  const [performanceLoading, setPerformanceLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -214,6 +216,43 @@ const Dashboard = () => {
       toast.error("Failed to generate AI analysis");
     } finally {
       setAnalysisLoading(false);
+    }
+  };
+
+  const fetchPerformanceAnalysis = async () => {
+    setPerformanceLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please log in to view performance analysis");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('analyze-performance', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        if (data.error.includes('Rate limit')) {
+          toast.error("Rate limit exceeded. Please try again later.");
+        } else if (data.error.includes('payment')) {
+          toast.error("AI service requires payment. Please add credits.");
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+
+      setPerformanceAnalysis(data.analysis);
+    } catch (error: any) {
+      console.error('Error fetching performance analysis:', error);
+      toast.error("Failed to generate performance analysis");
+    } finally {
+      setPerformanceLoading(false);
     }
   };
 
@@ -503,34 +542,45 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Performance Analysis */}
-            <Card>
+            {/* AI Performance Analysis */}
+            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
               <CardHeader>
-                <CardTitle>Performance Analysis</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  AI Performance Analysis & Tailored Suggestions
+                </CardTitle>
+                <CardDescription>Get personalized recommendations based on your typing data</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Speed Trends</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {stats.bestWpm > stats.avgWpm * 1.2 ? 
-                      "Your best performance is significantly higher than average. Focus on consistency." :
-                      "Your performance is relatively consistent. Great job maintaining steady improvement!"}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Consistency Score</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {Math.abs(stats.bestWpm - stats.avgWpm) < 10 ? 
-                      "Excellent consistency in your typing speed." :
-                      "Try to maintain a more consistent pace across tests."}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Best Time to Practice</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Based on your performance data, consider practicing during focused time blocks.
-                  </p>
-                </div>
+              <CardContent>
+                {!performanceAnalysis && !performanceLoading && (
+                  <Button 
+                    onClick={fetchPerformanceAnalysis}
+                    className="w-full"
+                    disabled={recentTests.length === 0}
+                  >
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Generate Performance Analysis
+                  </Button>
+                )}
+                
+                {performanceLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                )}
+
+                {performanceAnalysis && (
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{performanceAnalysis}</ReactMarkdown>
+                    <Button 
+                      onClick={fetchPerformanceAnalysis}
+                      variant="outline"
+                      className="mt-4"
+                    >
+                      Regenerate Analysis
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
