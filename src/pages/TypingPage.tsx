@@ -19,153 +19,14 @@ import {
   Sparkles
 } from "lucide-react";
 
-const typingTexts = {
-  simple: `The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet at least once. It is commonly used for typing practice because it helps improve finger dexterity and familiarity with all keyboard keys. Regular practice with varied sentences like this one can significantly improve your typing speed and accuracy. The more you practice, the better you become at typing without looking at the keyboard. Consistent practice is the key to mastering touch typing skills.`,
-  
-  javascript: `function calculateSum(arr) {
-  return arr.reduce((sum, num) => sum + num, 0);
-}
-
-const users = [
-  { id: 1, name: "John", active: true },
-  { id: 2, name: "Jane", active: false }
-];
-
-const activeUsers = users.filter(user => user.active);
-console.log(activeUsers);`,
-
-  python: `def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-
-class DataProcessor:
-    def __init__(self, data):
-        self.data = data
-    
-    def process(self):
-        return [x * 2 for x in self.data if x > 0]
-
-processor = DataProcessor([1, -2, 3, 4, -5])
-result = processor.process()`,
-
-  typescript: `interface User {
-  id: number;
-  name: string;
-  email: string;
-  isActive: boolean;
-}
-
-class UserService {
-  private users: User[] = [];
-  
-  addUser(user: User): void {
-    this.users.push(user);
-  }
-  
-  getActiveUsers(): User[] {
-    return this.users.filter(user => user.isActive);
-  }
-}
-
-const userService = new UserService();`,
-
-  java: `public class BinarySearch {
-    public static int search(int[] arr, int target) {
-        int left = 0;
-        int right = arr.length - 1;
-        
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            
-            if (arr[mid] == target) {
-                return mid;
-            } else if (arr[mid] < target) {
-                left = mid + 1;
-            } else {
-                right = mid - 1;
-            }
-        }
-        return -1;
-    }
-}`,
-
-  csharp: `using System;
-using System.Collections.Generic;
-using System.Linq;
-
-public class Product
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public decimal Price { get; set; }
-}
-
-public class ProductService
-{
-    private List<Product> products = new List<Product>();
-    
-    public void AddProduct(Product product)
-    {
-        products.Add(product);
-    }
-    
-    public IEnumerable<Product> GetExpensiveProducts(decimal minPrice)
-    {
-        return products.Where(p => p.Price >= minPrice);
-    }
-}`,
-
-  cpp: `#include <iostream>
-#include <vector>
-#include <algorithm>
-
-class QuickSort {
-public:
-    static void sort(std::vector<int>& arr, int low, int high) {
-        if (low < high) {
-            int pi = partition(arr, low, high);
-            sort(arr, low, pi - 1);
-            sort(arr, pi + 1, high);
-        }
-    }
-private:
-    static int partition(std::vector<int>& arr, int low, int high) {
-        int pivot = arr[high];
-        int i = (low - 1);
-        return i + 1;
-    }
-};`,
-
-  rust: `use std::collections::HashMap;
-
-struct Person {
-    name: String,
-    age: u32,
-}
-
-impl Person {
-    fn new(name: String, age: u32) -> Self {
-        Person { name, age }
-    }
-    
-    fn greet(&self) -> String {
-        format!("Hello, I'm {} and I'm {} years old", self.name, self.age)
-    }
-}
-
-fn main() {
-    let mut people = HashMap::new();
-    let person = Person::new("Alice".to_string(), 30);
-    people.insert(1, person);
-}`
-};
+const languageTypes = ["simple", "javascript", "typescript", "python", "java", "csharp", "cpp", "rust"] as const;
+type LanguageType = typeof languageTypes[number];
 
 const TypingPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [selectedLanguage, setSelectedLanguage] = useState<keyof typeof typingTexts>("simple");
-  const [currentText, setCurrentText] = useState(typingTexts.simple);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageType>("simple");
+  const [currentText, setCurrentText] = useState("");
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
@@ -175,6 +36,13 @@ const TypingPage = () => {
   
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Auto-generate text when language changes or on initial load
+  useEffect(() => {
+    if (!currentText) {
+      generateTextForLanguage(selectedLanguage);
+    }
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -259,26 +127,51 @@ const TypingPage = () => {
     setTestCompleted(false);
   };
 
-  const handleLanguageChange = (language: keyof typeof typingTexts) => {
+  const generateTextForLanguage = async (language: LanguageType) => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-code', {
+        body: { 
+          language: language,
+          topic: customTopic.trim() || undefined
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        toast({
+          title: "Error",
+          description: data.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setCurrentText(data.code);
+    } catch (error) {
+      console.error('Error generating text:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate typing text. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleLanguageChange = (language: LanguageType) => {
     if (isTyping) return; // Don't allow language change during typing
     setSelectedLanguage(language);
-    setCurrentText(typingTexts[language]);
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
+    generateTextForLanguage(language);
   };
 
   const handleGenerateCode = async () => {
-    if (selectedLanguage === 'simple') {
-      toast({
-        title: "Not Available",
-        description: "AI code generation is only available for programming languages.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-code', {
@@ -306,14 +199,14 @@ const TypingPage = () => {
       setTestCompleted(false);
       
       toast({
-        title: "Code Generated!",
-        description: "AI has generated a new code snippet for you to practice.",
+        title: "Text Generated!",
+        description: "AI has generated new typing content for you to practice.",
       });
     } catch (error) {
-      console.error('Error generating code:', error);
+      console.error('Error generating content:', error);
       toast({
         title: "Error",
-        description: "Failed to generate code. Please try again.",
+        description: "Failed to generate content. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -449,36 +342,34 @@ const TypingPage = () => {
               </Select>
             </div>
 
-            {selectedLanguage !== 'simple' && (
-              <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
-                  <span className="font-medium text-sm">AI Code Generator</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Generate custom code snippets using AI for typing practice
-                </p>
-                <div className="flex flex-col md:flex-row gap-2">
-                  <input
-                    type="text"
-                    placeholder="Optional: Enter a topic (e.g., 'sorting algorithm')"
-                    value={customTopic}
-                    onChange={(e) => setCustomTopic(e.target.value)}
-                    disabled={isTyping || isGenerating}
-                    className="flex-1 px-3 py-2 bg-surface border border-border rounded-md text-sm focus:border-primary focus:outline-none disabled:opacity-50"
-                  />
-                  <Button
-                    onClick={handleGenerateCode}
-                    disabled={isTyping || isGenerating}
-                    variant="default"
-                    size="sm"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {isGenerating ? 'Generating...' : 'Generate Code'}
-                  </Button>
-                </div>
+            <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <span className="font-medium text-sm">AI Content Generator</span>
               </div>
-            )}
+              <p className="text-sm text-muted-foreground">
+                Generate custom {selectedLanguage === 'simple' ? 'text' : 'code snippets'} using AI for typing practice
+              </p>
+              <div className="flex flex-col md:flex-row gap-2">
+                <input
+                  type="text"
+                  placeholder={selectedLanguage === 'simple' ? "Optional: Enter a topic (e.g., 'technology')" : "Optional: Enter a topic (e.g., 'sorting algorithm')"}
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  disabled={isTyping || isGenerating}
+                  className="flex-1 px-3 py-2 bg-surface border border-border rounded-md text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                />
+                <Button
+                  onClick={handleGenerateCode}
+                  disabled={isTyping || isGenerating}
+                  variant="default"
+                  size="sm"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  {isGenerating ? 'Generating...' : 'Generate New'}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
