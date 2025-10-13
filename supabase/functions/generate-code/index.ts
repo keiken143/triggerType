@@ -29,25 +29,17 @@ serve(async (req) => {
       );
     }
 
-    // Handle simple text (English paragraphs) differently from code
     const isSimpleText = language === 'simple';
     
-    let prompt: string;
-    let systemMessage: string;
+    const systemMessage = isSimpleText
+      ? 'Generate ONLY plain text paragraphs. No formatting, no explanations. 8-12 sentences, 2-3 paragraphs.'
+      : `Generate ONLY ${language} code. No markdown, no backticks, no explanations. 10-15 lines with inline comments. Code must be syntactically correct and ready to type.`;
     
-    if (isSimpleText) {
-      systemMessage = 'You are a text generator that creates well-written English paragraphs for typing practice. Return ONLY the text without any formatting, explanations, or special characters. The text should be 8-12 sentences long, forming 2-3 coherent paragraphs.';
-      prompt = topic 
-        ? `Write an informative and engaging text about "${topic}". Make it suitable for typing practice with proper grammar and punctuation.`
-        : `Write an informative and engaging text about a random interesting topic. Make it suitable for typing practice with proper grammar and punctuation.`;
-    } else {
-      systemMessage = 'You are a code generator that creates clean, well-formatted code snippets for typing practice. Return ONLY the code without any markdown formatting, explanations, or backticks. The code MUST be between 10-15 lines and MUST include detailed comments explaining what the code does. Comments are REQUIRED and should make up 30-40% of the lines.';
-      prompt = topic 
-        ? `Generate a ${language} code snippet about "${topic}". The code MUST be 10-15 lines long, well-structured, and MUST include inline comments throughout the code. Every major operation should have a comment explaining it. Make it suitable for typing practice with good programming patterns and comprehensive comments.`
-        : `Generate a ${language} code snippet. The code MUST be 10-15 lines long, well-structured, and MUST include inline comments throughout the code. Every major operation should have a comment explaining it. Make it suitable for typing practice with good programming patterns and comprehensive comments.`;
-    }
+    const userPrompt = isSimpleText
+      ? (topic ? `Topic: ${topic}` : 'Random interesting topic')
+      : (topic ? `${language} code: ${topic}` : `${language} code snippet`);
 
-    console.log('Generating content with prompt:', prompt);
+    console.log('Generating content for:', language, topic || 'default');
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -58,15 +50,11 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: systemMessage
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: userPrompt }
         ],
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     });
 
