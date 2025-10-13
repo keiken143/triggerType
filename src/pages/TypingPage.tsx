@@ -304,13 +304,6 @@ const TypingPage = () => {
           </Card>
         </div>
 
-        {/* Progress Bar */}
-        <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
-          <CardContent className="p-6">
-            <Progress value={progress} className="h-2" />
-          </CardContent>
-        </Card>
-
         {/* Language Selection */}
         <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
