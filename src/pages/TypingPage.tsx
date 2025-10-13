@@ -380,7 +380,7 @@ const TypingPage = () => {
               <span>Typing Test - {selectedLanguage === 'simple' ? 'Simple Text' : selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span>
               <div className="flex space-x-2">
                 {!isTyping ? (
-                  <Button onClick={handleStart} variant="default" size="sm">
+                  <Button onClick={handleStart} variant="default" size="sm" disabled={!currentText || isGenerating}>
                     <Play className="w-4 h-4 mr-2" />
                     Start
                   </Button>
@@ -399,25 +399,37 @@ const TypingPage = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Text to type */}
-            <div className="p-6 bg-surface rounded-lg border border-border/50 overflow-auto">
-              <pre className={`text-sm leading-relaxed whitespace-pre-wrap ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}>
-                {currentText.split('').map((char, index) => (
-                  <span
-                    key={index}
-                    className={`${getCharacterClass(index)} transition-all duration-150`}
-                  >
-                    {char}
-                  </span>
-                ))}
-              </pre>
+            <div className="p-6 bg-surface rounded-lg border border-border/50 overflow-auto min-h-[200px] flex items-center justify-center">
+              {isGenerating ? (
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Sparkles className="w-8 h-8 animate-pulse text-primary" />
+                  <p className="text-sm">Generating typing content...</p>
+                </div>
+              ) : !currentText ? (
+                <div className="flex flex-col items-center gap-4 text-muted-foreground">
+                  <Code className="w-8 h-8" />
+                  <p className="text-sm">Select a language above to generate typing content</p>
+                </div>
+              ) : (
+                <pre className={`text-sm leading-relaxed whitespace-pre-wrap w-full ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}>
+                  {currentText.split('').map((char, index) => (
+                    <span
+                      key={index}
+                      className={`${getCharacterClass(index)} transition-all duration-150`}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </pre>
+              )}
             </div>
 
             {/* Input area */}
             <textarea
               value={typedText}
               onChange={handleTextChange}
-              placeholder={isTyping ? `Start typing the ${selectedLanguage === 'simple' ? 'text' : 'code'}...` : `Click Start to begin typing ${selectedLanguage === 'simple' ? 'simple text' : selectedLanguage + ' code'}`}
-              disabled={!isTyping}
+              placeholder={isGenerating ? 'Generating content...' : isTyping ? `Start typing the ${selectedLanguage === 'simple' ? 'text' : 'code'}...` : !currentText ? 'Select a language to begin' : `Click Start to begin typing ${selectedLanguage === 'simple' ? 'simple text' : selectedLanguage + ' code'}`}
+              disabled={!isTyping || isGenerating}
               onPaste={(e) => e.preventDefault()}
               onCut={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
