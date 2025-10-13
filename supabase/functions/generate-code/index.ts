@@ -41,10 +41,10 @@ serve(async (req) => {
         ? `Write an informative and engaging text about "${topic}". Make it suitable for typing practice with proper grammar and punctuation.`
         : `Write an informative and engaging text about a random interesting topic. Make it suitable for typing practice with proper grammar and punctuation.`;
     } else {
-      systemMessage = 'You are a code generator that creates clean, well-formatted code snippets for typing practice. Return ONLY the code without any markdown formatting, explanations, or backticks. The code should be between 10-15 lines.';
+      systemMessage = 'You are a code generator that creates clean, well-formatted code snippets for typing practice. Return ONLY the code without any markdown formatting, explanations, or backticks. The code MUST be between 10-15 lines and MUST include detailed comments explaining what the code does. Comments are REQUIRED and should make up 30-40% of the lines.';
       prompt = topic 
-        ? `Generate a ${language} code snippet about "${topic}". The code should be 10-15 lines long, well-structured, and include comments. Make it suitable for typing practice with good programming patterns.`
-        : `Generate a ${language} code snippet. The code should be 10-15 lines long, well-structured, and include comments. Make it suitable for typing practice with good programming patterns.`;
+        ? `Generate a ${language} code snippet about "${topic}". The code MUST be 10-15 lines long, well-structured, and MUST include inline comments throughout the code. Every major operation should have a comment explaining it. Make it suitable for typing practice with good programming patterns and comprehensive comments.`
+        : `Generate a ${language} code snippet. The code MUST be 10-15 lines long, well-structured, and MUST include inline comments throughout the code. Every major operation should have a comment explaining it. Make it suitable for typing practice with good programming patterns and comprehensive comments.`;
     }
 
     console.log('Generating content with prompt:', prompt);
