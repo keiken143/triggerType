@@ -29,11 +29,25 @@ serve(async (req) => {
       );
     }
 
-    const prompt = topic 
-      ? `Generate a ${language} code snippet about "${topic}". The code should be 10-15 lines long, well-structured, and include comments. Make it suitable for typing practice with good programming patterns.`
-      : `Generate a ${language} code snippet. The code should be 10-15 lines long, well-structured, and include comments. Make it suitable for typing practice with good programming patterns.`;
+    // Handle simple text (English paragraphs) differently from code
+    const isSimpleText = language === 'simple';
+    
+    let prompt: string;
+    let systemMessage: string;
+    
+    if (isSimpleText) {
+      systemMessage = 'You are a text generator that creates well-written English paragraphs for typing practice. Return ONLY the text without any formatting, explanations, or special characters. The text should be 8-12 sentences long, forming 2-3 coherent paragraphs.';
+      prompt = topic 
+        ? `Write an informative and engaging text about "${topic}". Make it suitable for typing practice with proper grammar and punctuation.`
+        : `Write an informative and engaging text about a random interesting topic. Make it suitable for typing practice with proper grammar and punctuation.`;
+    } else {
+      systemMessage = 'You are a code generator that creates clean, well-formatted code snippets for typing practice. Return ONLY the code without any markdown formatting, explanations, or backticks. The code should be between 10-15 lines.';
+      prompt = topic 
+        ? `Generate a ${language} code snippet about "${topic}". The code should be 10-15 lines long, well-structured, and include comments. Make it suitable for typing practice with good programming patterns.`
+        : `Generate a ${language} code snippet. The code should be 10-15 lines long, well-structured, and include comments. Make it suitable for typing practice with good programming patterns.`;
+    }
 
-    console.log('Generating code with prompt:', prompt);
+    console.log('Generating content with prompt:', prompt);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -46,7 +60,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a code generator that creates clean, well-formatted code snippets for typing practice. Return ONLY the code without any markdown formatting, explanations, or backticks. The code should be between 10-15 lines.'
+            content: systemMessage
           },
           {
             role: 'user',
