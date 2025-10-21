@@ -140,16 +140,11 @@ const Landing = () => {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of developers and professionals who've improved their typing speed and accuracy with TriggerType.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/signup">
+          <div className="flex justify-center">
+            <Link to="/type">
               <Button variant="glow" size="lg" className="px-8">
                 <Trophy className="w-5 h-5 mr-2" />
                 Start Free Trial
-              </Button>
-            </Link>
-            <Link to="/type">
-              <Button variant="outline" size="lg" className="px-8">
-                Try Demo
               </Button>
             </Link>
           </div>
