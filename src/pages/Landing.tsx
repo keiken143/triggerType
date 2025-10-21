@@ -12,8 +12,10 @@ import {
   Trophy
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Landing = () => {
+  const { user } = useAuth();
   const features = [
     {
       icon: Brain,
@@ -79,7 +81,7 @@ const Landing = () => {
               Practice code. Track patterns. Outperform yourself.
             </p>
 
-            <Link to="/signup">
+            <Link to={user ? "/type" : "/signup"}>
               <Button variant="hero" size="lg" className="text-lg px-8 py-4">
                 <Zap className="w-5 h-5 mr-2" />
                 Get Started
