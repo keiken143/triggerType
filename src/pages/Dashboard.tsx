@@ -481,10 +481,10 @@ const Dashboard = () => {
                   
                   <div>
                     <div className="flex justify-between text-sm mb-2">
-                      <span>Accuracy Goal (98%)</span>
-                      <span>{stats.accuracy}/98</span>
+                      <span>Accuracy Goal (100%)</span>
+                      <span>{stats.accuracy}/100</span>
                     </div>
-                    <Progress value={(stats.accuracy / 98) * 100} className="h-2" />
+                    <Progress value={(stats.accuracy / 100) * 100} className="h-2" />
                   </div>
                   
                   <div>
