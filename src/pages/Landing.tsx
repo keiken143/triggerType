@@ -143,7 +143,7 @@ const Landing = () => {
             Join thousands of developers and professionals who've improved their typing speed and accuracy with TriggerType.
           </p>
           <div className="flex justify-center">
-            <Link to="/type">
+            <Link to={user ? "/type" : "/signup"}>
               <Button variant="glow" size="lg" className="px-8">
                 <Trophy className="w-5 h-5 mr-2" />
                 Start Free Trial
