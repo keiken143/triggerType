@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
+import KeyboardHeatmap from "@/components/KeyboardHeatmap";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -583,6 +584,9 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Keyboard Heatmap */}
+            <KeyboardHeatmap />
 
             {/* Error Analysis */}
             <Card>

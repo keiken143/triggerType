@@ -33,6 +33,7 @@ const TypingPage = () => {
   const [testCompleted, setTestCompleted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [customTopic, setCustomTopic] = useState("");
+  const [keyErrors, setKeyErrors] = useState<Record<string, number>>({});
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -84,7 +85,8 @@ const TypingPage = () => {
           language: selectedLanguage,
           character_count: characterCount,
           correct_characters: correctCharacters,
-          errors: errors
+          errors: errors,
+          key_errors: keyErrors
         });
 
       if (error) {
@@ -125,6 +127,7 @@ const TypingPage = () => {
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
+    setKeyErrors({});
   };
 
   const generateTextForLanguage = async (language: LanguageType) => {
@@ -168,6 +171,7 @@ const TypingPage = () => {
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
+    setKeyErrors({});
     generateTextForLanguage(language);
   };
 
@@ -197,6 +201,7 @@ const TypingPage = () => {
       setWpm(0);
       setAccuracy(100);
       setTestCompleted(false);
+      setKeyErrors({});
       
       toast({
         title: "Text Generated!",
@@ -218,6 +223,21 @@ const TypingPage = () => {
     if (!isTyping) return;
     
     const newText = e.target.value;
+    
+    // Track key errors - check if a new character was added incorrectly
+    if (newText.length > typedText.length) {
+      const newIndex = newText.length - 1;
+      const typedChar = newText[newIndex];
+      const expectedChar = currentText[newIndex];
+      
+      if (typedChar !== expectedChar) {
+        setKeyErrors(prev => ({
+          ...prev,
+          [typedChar.toLowerCase()]: (prev[typedChar.toLowerCase()] || 0) + 1
+        }));
+      }
+    }
+    
     setTypedText(newText);
     
     // Calculate WPM

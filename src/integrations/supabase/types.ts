@@ -52,6 +52,7 @@ export type Database = {
           created_at: string
           errors: number
           id: string
+          key_errors: Json | null
           language: string
           test_duration: number
           updated_at: string
@@ -65,6 +66,7 @@ export type Database = {
           created_at?: string
           errors: number
           id?: string
+          key_errors?: Json | null
           language: string
           test_duration: number
           updated_at?: string
@@ -78,6 +80,7 @@ export type Database = {
           created_at?: string
           errors?: number
           id?: string
+          key_errors?: Json | null
           language?: string
           test_duration?: number
           updated_at?: string
