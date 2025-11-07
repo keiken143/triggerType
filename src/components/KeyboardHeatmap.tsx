@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -19,11 +20,26 @@ const KeyboardHeatmap = () => {
   const [keyErrors, setKeyErrors] = useState<KeyErrors>({});
   const [maxErrors, setMaxErrors] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [testCount, setTestCount] = useState(0);
 
   useEffect(() => {
     if (!user) return;
 
     const fetchKeyErrors = async () => {
+      // First, get total test count
+      const { count } = await supabase
+        .from('typing_tests')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      setTestCount(count || 0);
+
+      // If less than 5 tests, don't fetch key errors yet
+      if ((count || 0) < 5) {
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('typing_tests')
         .select('key_errors')
@@ -81,12 +97,37 @@ const KeyboardHeatmap = () => {
     );
   }
 
+  // Show progress message if less than 5 tests
+  if (testCount < 5) {
+    const testsRemaining = 5 - testCount;
+    return (
+      <Card className="p-6">
+        <h3 className="text-xl font-semibold mb-4">Keyboard Heatmap</h3>
+        <div className="space-y-4">
+          <p className="text-muted-foreground">
+            Complete {testsRemaining} more typing {testsRemaining === 1 ? 'test' : 'tests'} to unlock your personalized keyboard heatmap!
+          </p>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Progress</span>
+              <span>{testCount}/5 tests</span>
+            </div>
+            <Progress value={(testCount / 5) * 100} className="h-2" />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The heatmap will show which keys you mistype most frequently, helping you focus your practice.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   if (Object.keys(keyErrors).length === 0) {
     return (
       <Card className="p-6">
         <h3 className="text-xl font-semibold mb-4">Keyboard Heatmap</h3>
         <div className="text-muted-foreground">
-          Complete some typing tests to see your error patterns!
+          No error data available yet. Keep practicing!
         </div>
       </Card>
     );

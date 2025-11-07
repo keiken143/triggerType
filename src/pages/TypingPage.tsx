@@ -16,7 +16,8 @@ import {
   Zap,
   TrendingUp,
   Code,
-  Sparkles
+  Sparkles,
+  Brain
 } from "lucide-react";
 
 const languageTypes = ["simple", "javascript", "typescript", "python", "java", "csharp", "cpp", "rust"] as const;
@@ -34,6 +35,10 @@ const TypingPage = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [customTopic, setCustomTopic] = useState("");
   const [keyErrors, setKeyErrors] = useState<Record<string, number>>({});
+  const [isAdaptiveMode, setIsAdaptiveMode] = useState(false);
+  const [adaptiveDifficulty, setAdaptiveDifficulty] = useState("");
+  const [adaptiveMetrics, setAdaptiveMetrics] = useState<any>(null);
+  const [testCount, setTestCount] = useState(0);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -44,6 +49,19 @@ const TypingPage = () => {
       generateTextForLanguage(selectedLanguage);
     }
   }, []);
+
+  // Fetch test count for progress display
+  useEffect(() => {
+    const fetchTestCount = async () => {
+      if (!user) return;
+      const { count } = await supabase
+        .from('typing_tests')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      setTestCount(count || 0);
+    };
+    fetchTestCount();
+  }, [user]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -202,6 +220,7 @@ const TypingPage = () => {
       setAccuracy(100);
       setTestCompleted(false);
       setKeyErrors({});
+      setIsAdaptiveMode(false);
       
       toast({
         title: "Text Generated!",
@@ -214,6 +233,97 @@ const TypingPage = () => {
         description: "Failed to generate content. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAdaptivePractice = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to use adaptive practice mode.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (testCount < 5) {
+      toast({
+        title: "More Practice Needed",
+        description: `Complete ${5 - testCount} more test${5 - testCount === 1 ? '' : 's'} to unlock adaptive practice mode.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    setIsAdaptiveMode(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to use adaptive practice.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-adaptive-practice', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        if (data.error.includes('Rate limit')) {
+          toast({
+            title: "Rate Limit Exceeded",
+            description: "Please try again later.",
+            variant: "destructive",
+          });
+        } else if (data.error.includes('payment')) {
+          toast({
+            title: "Payment Required",
+            description: "Please add credits to your workspace.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive",
+          });
+        }
+        setIsAdaptiveMode(false);
+        return;
+      }
+
+      setCurrentText(data.text);
+      setAdaptiveDifficulty(data.difficultyDescription);
+      setAdaptiveMetrics(data.metrics);
+      setTypedText("");
+      setWpm(0);
+      setAccuracy(100);
+      setTestCompleted(false);
+      setKeyErrors({});
+      
+      toast({
+        title: "Adaptive Practice Ready!",
+        description: `Generated ${data.difficultyDescription} practice text based on your performance.`,
+      });
+    } catch (error) {
+      console.error('Error generating adaptive practice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate adaptive practice. Please try again.",
+        variant: "destructive",
+      });
+      setIsAdaptiveMode(false);
     } finally {
       setIsGenerating(false);
     }
@@ -324,6 +434,75 @@ const TypingPage = () => {
           </Card>
         </div>
 
+        {/* Adaptive Practice Section */}
+        {user && testCount >= 5 && (
+          <Card className="mb-8 bg-gradient-to-br from-primary/10 via-secondary-glow/10 to-primary/10 backdrop-blur-sm border-primary/20">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Brain className="w-5 h-5 text-primary" />
+                <span>Adaptive Practice Mode</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                AI-powered practice sessions tailored to your performance. Difficulty automatically adjusts as you improve.
+              </p>
+              
+              {isAdaptiveMode && adaptiveDifficulty && (
+                <div className="p-3 bg-card/50 rounded-lg border border-border/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Current Difficulty</span>
+                    <span className="text-sm text-primary">{adaptiveDifficulty}</span>
+                  </div>
+                  {adaptiveMetrics && (
+                    <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                      <div>Avg WPM: {adaptiveMetrics.avgWpm}</div>
+                      <div>Accuracy: {adaptiveMetrics.avgAccuracy}%</div>
+                      <div>Focus Areas: {adaptiveMetrics.problemKeys.length}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <Button
+                onClick={handleAdaptivePractice}
+                disabled={isTyping || isGenerating}
+                className="w-full"
+                variant={isAdaptiveMode ? "secondary" : "default"}
+              >
+                <Brain className="w-4 h-4 mr-2" />
+                {isGenerating ? 'Generating...' : isAdaptiveMode ? 'Generate New Adaptive Session' : 'Start Adaptive Practice'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Heatmap Progress for users with less than 5 tests */}
+        {user && testCount < 5 && (
+          <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Brain className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <h3 className="font-semibold">Unlock Adaptive Practice</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Complete {5 - testCount} more typing {5 - testCount === 1 ? 'test' : 'tests'} to unlock AI-powered adaptive practice mode and your personalized keyboard heatmap.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{testCount}/5 tests</span>
+                    </div>
+                    <Progress value={(testCount / 5) * 100} className="h-2" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Language Selection */}
         <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
@@ -390,7 +569,16 @@ const TypingPage = () => {
         <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Typing Test - {selectedLanguage === 'simple' ? 'Simple Text' : selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span>
+              <span>
+                {isAdaptiveMode ? (
+                  <>
+                    <Brain className="inline w-5 h-5 mr-2 text-primary" />
+                    Adaptive Practice - {adaptiveDifficulty}
+                  </>
+                ) : (
+                  `Typing Test - ${selectedLanguage === 'simple' ? 'Simple Text' : selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`
+                )}
+              </span>
               <div className="flex space-x-2">
                 {!isTyping ? (
                   <Button onClick={handleStart} variant="default" size="sm" disabled={!currentText || isGenerating}>
