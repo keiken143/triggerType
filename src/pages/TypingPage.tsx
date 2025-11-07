@@ -32,6 +32,7 @@ const TypingPage = () => {
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [testCompleted, setTestCompleted] = useState(false);
+  const [testSubmitted, setTestSubmitted] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [customTopic, setCustomTopic] = useState("");
   const [keyErrors, setKeyErrors] = useState<Record<string, number>>({});
@@ -72,12 +73,11 @@ const TypingPage = () => {
     } else if (timeLeft === 0) {
       setIsTyping(false);
       setTestCompleted(true);
-      saveTestResult();
     }
     return () => clearInterval(interval);
   }, [isTyping, timeLeft]);
 
-  const saveTestResult = async () => {
+  const handleSubmitTest = async () => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -115,8 +115,10 @@ const TypingPage = () => {
           variant: "destructive",
         });
       } else {
+        setTestSubmitted(true);
+        setTestCount(prev => prev + 1);
         toast({
-          title: "Test Completed!",
+          title: "Test Submitted Successfully!",
           description: `${wpm} WPM with ${accuracy}% accuracy. Result saved to your progress.`,
         });
       }
@@ -145,6 +147,7 @@ const TypingPage = () => {
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
+    setTestSubmitted(false);
     setKeyErrors({});
   };
 
@@ -189,6 +192,7 @@ const TypingPage = () => {
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
+    setTestSubmitted(false);
     setKeyErrors({});
     generateTextForLanguage(language);
   };
@@ -219,6 +223,7 @@ const TypingPage = () => {
       setWpm(0);
       setAccuracy(100);
       setTestCompleted(false);
+      setTestSubmitted(false);
       setKeyErrors({});
       setIsAdaptiveMode(false);
       
@@ -310,6 +315,7 @@ const TypingPage = () => {
       setWpm(0);
       setAccuracy(100);
       setTestCompleted(false);
+      setTestSubmitted(false);
       setKeyErrors({});
       
       toast({
@@ -638,6 +644,33 @@ const TypingPage = () => {
               onDragOver={(e) => e.preventDefault()}
               className={`w-full h-40 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none text-sm disabled:opacity-50 ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}
             />
+
+            {/* Submit Test Button */}
+            {testCompleted && !testSubmitted && (
+              <div className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-primary/10 to-secondary-glow/10 rounded-lg border border-primary/20">
+                <div className="text-center space-y-2">
+                  <h3 className="font-semibold text-lg">Test Complete!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Click below to submit your results and save them to your progress.
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleSubmitTest}
+                  size="lg"
+                  className="w-full md:w-auto min-w-[200px]"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Submit Test Results
+                </Button>
+              </div>
+            )}
+
+            {testSubmitted && (
+              <div className="flex items-center justify-center gap-2 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <Target className="w-5 h-5 text-primary" />
+                <span className="font-medium text-primary">Test submitted successfully!</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
