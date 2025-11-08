@@ -514,7 +514,7 @@ const Dashboard = () => {
                 {!aiAnalysis && !analysisLoading && (
                   <Button 
                     onClick={fetchAIAnalysis}
-                    className="w-full"
+                    className="w-full transition-transform active:scale-95 hover:scale-105"
                     disabled={recentTests.length === 0}
                   >
                     <Brain className="h-4 w-4 mr-2" />
@@ -534,7 +534,7 @@ const Dashboard = () => {
                     <Button 
                       onClick={fetchAIAnalysis}
                       variant="outline"
-                      className="mt-4"
+                      className="mt-4 transition-transform active:scale-95 hover:scale-105"
                     >
                       Regenerate Analysis
                     </Button>
@@ -556,7 +556,7 @@ const Dashboard = () => {
                 {!performanceAnalysis && !performanceLoading && (
                   <Button 
                     onClick={fetchPerformanceAnalysis}
-                    className="w-full"
+                    className="w-full transition-transform active:scale-95 hover:scale-105"
                     disabled={recentTests.length === 0}
                   >
                     <TrendingUp className="h-4 w-4 mr-2" />
@@ -576,7 +576,7 @@ const Dashboard = () => {
                     <Button 
                       onClick={fetchPerformanceAnalysis}
                       variant="outline"
-                      className="mt-4"
+                      className="mt-4 transition-transform active:scale-95 hover:scale-105"
                     >
                       Regenerate Analysis
                     </Button>
