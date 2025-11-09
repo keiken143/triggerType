@@ -335,6 +335,39 @@ const TypingPage = () => {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      
+      if (!isTyping) return;
+      
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newText = typedText.substring(0, start) + '\t' + typedText.substring(end);
+      
+      setTypedText(newText);
+      
+      // Set cursor position after the inserted tab
+      setTimeout(() => {
+        textarea.selectionStart = textarea.selectionEnd = start + 1;
+      }, 0);
+      
+      // Calculate WPM and accuracy for the new text
+      const wordsTyped = newText.split(' ').length;
+      const timeElapsed = (60 - timeLeft) / 60;
+      const currentWpm = timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0;
+      setWpm(currentWpm);
+      
+      let correct = 0;
+      for (let i = 0; i < newText.length; i++) {
+        if (newText[i] === currentText[i]) correct++;
+      }
+      const currentAccuracy = newText.length > 0 ? Math.round((correct / newText.length) * 100) : 100;
+      setAccuracy(currentAccuracy);
+    }
+  };
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (!isTyping) return;
     
@@ -635,6 +668,7 @@ const TypingPage = () => {
             <textarea
               value={typedText}
               onChange={handleTextChange}
+              onKeyDown={handleKeyDown}
               placeholder={isGenerating ? 'Generating content...' : isTyping ? `Start typing the ${selectedLanguage === 'simple' ? 'text' : 'code'}...` : !currentText ? 'Select a language to begin' : `Click Start to begin typing ${selectedLanguage === 'simple' ? 'simple text' : selectedLanguage + ' code'}`}
               disabled={!isTyping || isGenerating}
               onPaste={(e) => e.preventDefault()}
