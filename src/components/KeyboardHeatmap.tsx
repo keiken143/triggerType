@@ -134,81 +134,83 @@ const KeyboardHeatmap = () => {
   }
 
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Keyboard Heatmap</h3>
-        <p className="text-sm text-muted-foreground mb-4">
+    <Card className="p-3 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-semibold mb-2">Keyboard Heatmap</h3>
+        <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
           Shows which keys you mistype most frequently (based on last 50 tests)
         </p>
         
         {/* Legend */}
-        <div className="flex items-center gap-4 text-xs">
-          <span className="text-muted-foreground">Error Frequency:</span>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-6 bg-card border border-border rounded"></div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs">
+          <span className="text-muted-foreground w-full sm:w-auto mb-1 sm:mb-0">Error Frequency:</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-6 h-4 sm:w-8 sm:h-6 bg-card border border-border rounded"></div>
             <span>None</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-6 bg-yellow-500/20 border border-yellow-500/40 rounded"></div>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-6 h-4 sm:w-8 sm:h-6 bg-yellow-500/20 border border-yellow-500/40 rounded"></div>
             <span>Low</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-6 bg-orange-500/40 border border-orange-500/60 rounded"></div>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-6 h-4 sm:w-8 sm:h-6 bg-orange-500/40 border border-orange-500/60 rounded"></div>
             <span>Medium</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-6 bg-red-500/60 border border-red-500/80 rounded"></div>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-6 h-4 sm:w-8 sm:h-6 bg-red-500/60 border border-red-500/80 rounded"></div>
             <span>High</span>
           </div>
         </div>
       </div>
 
       {/* Keyboard Layout */}
-      <div className="flex flex-col items-center gap-2">
-        {KEYBOARD_LAYOUT.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex gap-2" style={{ marginLeft: rowIndex * 16 }}>
-            {row.map((key) => {
-              const errorCount = getKeyErrorCount(key);
-              return (
-                <div
-                  key={key}
-                  className={`
-                    relative w-12 h-12 flex items-center justify-center 
-                    rounded border-2 font-mono font-semibold text-sm
-                    transition-all duration-200 hover:scale-110 cursor-pointer
-                    ${getKeyColor(key)}
-                  `}
-                  title={`${key}: ${errorCount} error${errorCount !== 1 ? 's' : ''}`}
-                >
-                  {key.toUpperCase()}
-                  {errorCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {errorCount}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-        
-        {/* Spacebar */}
-        <div className="flex gap-2 mt-2">
-          <div
-            className={`
-              relative w-96 h-12 flex items-center justify-center 
-              rounded border-2 font-mono font-semibold text-sm
-              transition-all duration-200 hover:scale-105 cursor-pointer
-              ${getKeyColor(' ')}
-            `}
-            title={`Space: ${getKeyErrorCount(' ')} error${getKeyErrorCount(' ') !== 1 ? 's' : ''}`}
-          >
-            SPACE
-            {getKeyErrorCount(' ') > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
-                {getKeyErrorCount(' ')}
-              </span>
-            )}
+      <div className="overflow-x-auto pb-2">
+        <div className="flex flex-col items-center gap-1 sm:gap-2 min-w-max mx-auto scale-75 sm:scale-90 md:scale-100">
+          {KEYBOARD_LAYOUT.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex gap-1 sm:gap-2" style={{ marginLeft: `${rowIndex * 8}px` }}>
+              {row.map((key) => {
+                const errorCount = getKeyErrorCount(key);
+                return (
+                  <div
+                    key={key}
+                    className={`
+                      relative w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex items-center justify-center 
+                      rounded border-2 font-mono font-semibold text-[10px] sm:text-xs md:text-sm
+                      transition-all duration-200 hover:scale-110 cursor-pointer
+                      ${getKeyColor(key)}
+                    `}
+                    title={`${key}: ${errorCount} error${errorCount !== 1 ? 's' : ''}`}
+                  >
+                    {key.toUpperCase()}
+                    {errorCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                        {errorCount}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          
+          {/* Spacebar */}
+          <div className="flex gap-1 sm:gap-2 mt-1 sm:mt-2">
+            <div
+              className={`
+                relative w-64 sm:w-80 md:w-96 h-8 sm:h-10 md:h-12 flex items-center justify-center 
+                rounded border-2 font-mono font-semibold text-[10px] sm:text-xs md:text-sm
+                transition-all duration-200 hover:scale-105 cursor-pointer
+                ${getKeyColor(' ')}
+              `}
+              title={`Space: ${getKeyErrorCount(' ')} error${getKeyErrorCount(' ') !== 1 ? 's' : ''}`}
+            >
+              SPACE
+              {getKeyErrorCount(' ') > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center">
+                  {getKeyErrorCount(' ')}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
