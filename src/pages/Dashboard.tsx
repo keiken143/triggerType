@@ -4,6 +4,9 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import KeyboardHeatmap from "@/components/KeyboardHeatmap";
+import { PerformanceOverTimeChart } from "@/components/charts/PerformanceOverTimeChart";
+import { ErrorAnalysisByKeyChart } from "@/components/charts/ErrorAnalysisByKeyChart";
+import { PerformanceComparisonChart } from "@/components/charts/PerformanceComparisonChart";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -33,11 +36,13 @@ interface TypingTest {
   errors: number;
   correct_characters: number;
   character_count: number;
+  key_errors?: any;
 }
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [recentTests, setRecentTests] = useState<TypingTest[]>([]);
+  const [allTests, setAllTests] = useState<TypingTest[]>([]);
   const [stats, setStats] = useState({
     avgWpm: 0,
     bestWpm: 0,
@@ -67,6 +72,21 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
+      // Fetch all tests for charts
+      const { data: allTestsData, error: allTestsError } = await supabase
+        .from('typing_tests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (allTestsError) {
+        console.error('Error fetching all typing tests:', allTestsError);
+        return;
+      }
+
+      setAllTests(allTestsData || []);
+
+      // Get recent tests (top 10)
       const { data: tests, error } = await supabase
         .from('typing_tests')
         .select('*')
@@ -408,6 +428,16 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            {/* Performance Charts */}
+            <div className="space-y-6">
+              <PerformanceOverTimeChart tests={allTests} />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ErrorAnalysisByKeyChart tests={allTests} />
+                <PerformanceComparisonChart tests={allTests} />
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Tests */}
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
