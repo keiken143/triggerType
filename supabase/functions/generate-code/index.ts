@@ -33,7 +33,7 @@ serve(async (req) => {
     
     const systemMessage = isSimpleText
       ? 'Generate ONLY plain text paragraphs. No formatting, no explanations. 8-12 sentences, 2-3 paragraphs.'
-      : `Generate ONLY ${language} code. No markdown, no backticks, no explanations. 10-15 lines with inline comments. Code must be syntactically correct and ready to type.`;
+      : `Generate ONLY ${language} code. No markdown, no backticks, no explanations. No comments of any kind - no single-line comments, no multi-line comments, no inline comments, no docstrings, no documentation strings. Only pure executable code. 10-15 lines. Code must be syntactically correct and ready to type.`;
     
     const userPrompt = isSimpleText
       ? (topic ? `Topic: ${topic}` : 'Random interesting topic')
