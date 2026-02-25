@@ -26,7 +26,7 @@ type LanguageType = typeof languageTypes[number];
 const TypingPage = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageType>("simple");
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageType>("javascript");
   const [currentText, setCurrentText] = useState("");
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
@@ -561,7 +561,7 @@ const TypingPage = () => {
                   <SelectValue placeholder="Choose typing mode" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="simple">Simple Text</SelectItem>
+                  
                   <SelectItem value="javascript">JavaScript</SelectItem>
                   <SelectItem value="typescript">TypeScript</SelectItem>
                   <SelectItem value="python">Python</SelectItem>
@@ -579,12 +579,12 @@ const TypingPage = () => {
                 <span className="font-medium text-sm">AI Content Generator</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Generate custom {selectedLanguage === 'simple' ? 'text' : 'code snippets'} using AI for typing practice
+                Generate custom code snippets using AI for typing practice
               </p>
               <div className="flex flex-col md:flex-row gap-2">
                 <input
                   type="text"
-                  placeholder={selectedLanguage === 'simple' ? "Optional: Enter a topic (e.g., 'technology')" : "Optional: Enter a topic (e.g., 'sorting algorithm')"}
+                  placeholder="Optional: Enter a topic (e.g., 'sorting algorithm')"
                   value={customTopic}
                   onChange={(e) => setCustomTopic(e.target.value)}
                   disabled={isTyping || isGenerating}
@@ -615,7 +615,7 @@ const TypingPage = () => {
                     Adaptive Practice - {adaptiveDifficulty}
                   </>
                 ) : (
-                  `Typing Test - ${selectedLanguage === 'simple' ? 'Simple Text' : selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`
+                  `Typing Test - ${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`
                 )}
               </span>
               <div className="flex space-x-2">
@@ -651,7 +651,7 @@ const TypingPage = () => {
                   <p className="text-sm">Select a language above to generate typing content</p>
                 </div>
               ) : (
-                <pre className={`text-sm leading-relaxed whitespace-pre-wrap w-full ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}>
+                <pre className="text-sm leading-relaxed whitespace-pre-wrap w-full font-mono">
                   {currentText.split('').map((char, index) => (
                     <span
                       key={index}
@@ -669,14 +669,14 @@ const TypingPage = () => {
               value={typedText}
               onChange={handleTextChange}
               onKeyDown={handleKeyDown}
-              placeholder={isGenerating ? 'Generating content...' : isTyping ? `Start typing the ${selectedLanguage === 'simple' ? 'text' : 'code'}...` : !currentText ? 'Select a language to begin' : `Click Start to begin typing ${selectedLanguage === 'simple' ? 'simple text' : selectedLanguage + ' code'}`}
+              placeholder={isGenerating ? 'Generating content...' : isTyping ? 'Start typing the code...' : !currentText ? 'Select a language to begin' : `Click Start to begin typing ${selectedLanguage} code`}
               disabled={!isTyping || isGenerating}
               onPaste={(e) => e.preventDefault()}
               onCut={(e) => e.preventDefault()}
               onCopy={(e) => e.preventDefault()}
               onDrop={(e) => e.preventDefault()}
               onDragOver={(e) => e.preventDefault()}
-              className={`w-full h-40 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none text-sm disabled:opacity-50 ${selectedLanguage === 'simple' ? 'font-sans' : 'font-mono'}`}
+              className="w-full h-40 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none text-sm disabled:opacity-50 font-mono"
             />
 
             {/* Submit Test Button */}
@@ -715,7 +715,7 @@ const TypingPage = () => {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-muted-foreground">
-              <li>• Choose between Simple Text or Programming Language typing modes</li>
+              <li>• Choose a Programming Language typing mode</li>
               <li>• Click "Start" to begin the typing test</li>
               <li>• Type the text exactly as shown above, including all punctuation and syntax</li>
               <li>• Correct characters will be highlighted in blue</li>
