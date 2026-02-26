@@ -240,7 +240,7 @@ const TypingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
-      <div className="fixed inset-0 opacity-5" style={{ backgroundImage: "var(--pattern-grid)" }} />
+      <div className="fixed inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: "var(--pattern-grid)" }} />
       <Navbar />
       
       <div className="container mx-auto px-6 pt-24 pb-12">
