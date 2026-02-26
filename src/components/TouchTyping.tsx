@@ -14,6 +14,8 @@ import {
   Zap,
   TrendingUp,
   Keyboard,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 const touchTypingLessons = [
@@ -35,6 +37,7 @@ const TouchTyping = () => {
   const [testCompleted, setTestCompleted] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [keyErrors, setKeyErrors] = useState<Record<string, number>>({});
+  const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -46,6 +49,30 @@ const TouchTyping = () => {
     }
     return words.join(" ");
   }, []);
+
+  const generateAIText = async () => {
+    const lesson = touchTypingLessons[selectedLesson];
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-code", {
+        body: {
+          language: "simple",
+          topic: `Generate a typing practice paragraph using ONLY words that can be formed from these keys: ${lesson.keys}. The text should be 40-60 words long, lowercase, no punctuation except spaces. Focus on real English words using only those letters. Do NOT include any other characters.`,
+        },
+      });
+      if (error) throw error;
+      if (data?.code) {
+        setCurrentText(data.code.trim());
+      } else {
+        throw new Error("No text generated");
+      }
+    } catch {
+      toast({ title: "Generation failed", description: "Using preset words instead.", variant: "destructive" });
+      setCurrentText(generateLessonText(selectedLesson));
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   useEffect(() => {
     setCurrentText(generateLessonText(selectedLesson));
@@ -173,9 +200,24 @@ const TouchTyping = () => {
               </Button>
             ))}
           </div>
-          <p className="text-sm text-muted-foreground mt-3">
-            Focus keys: <span className="font-mono text-primary">{touchTypingLessons[selectedLesson].keys}</span>
-          </p>
+          <div className="flex items-center justify-between mt-3">
+            <p className="text-sm text-muted-foreground">
+              Focus keys: <span className="font-mono text-primary">{touchTypingLessons[selectedLesson].keys}</span>
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generateAIText}
+              disabled={isTyping || isGenerating}
+              className="border-primary/50 text-primary hover:bg-primary/10"
+            >
+              {isGenerating ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+              ) : (
+                <><Sparkles className="w-4 h-4 mr-2" />Generative Text</>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
