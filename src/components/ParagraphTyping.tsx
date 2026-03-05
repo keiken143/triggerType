@@ -187,7 +187,19 @@ const ParagraphTyping = () => {
               ) : (
                 <Button onClick={handlePause} variant="secondary" size="sm"><Pause className="w-4 h-4 mr-2" />Pause</Button>
               )}
-              <Button onClick={handleReset} variant="outline" size="sm"><RotateCcw className="w-4 h-4 mr-2" />Reset</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generateAIText}
+                disabled={isTyping || isGenerating}
+                className="border-primary/50 text-primary hover:bg-primary/10"
+              >
+                {isGenerating ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                ) : (
+                  <><Sparkles className="w-4 h-4 mr-2" />Generative Text</>
+                )}
+              </Button>
             </div>
           </CardTitle>
         </CardHeader>
@@ -210,24 +222,6 @@ const ParagraphTyping = () => {
             className="w-full h-32 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none text-sm disabled:opacity-50"
           />
 
-          <div className="flex items-center justify-between">
-            <Button onClick={handleReset} variant="ghost" size="sm" disabled={isTyping}>
-              <RotateCcw className="w-4 h-4 mr-2" />New Paragraph
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={generateAIText}
-              disabled={isTyping || isGenerating}
-              className="border-primary/50 text-primary hover:bg-primary/10"
-            >
-              {isGenerating ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
-              ) : (
-                <><Sparkles className="w-4 h-4 mr-2" />Generative Text</>
-              )}
-            </Button>
-          </div>
 
           {testCompleted && !testSubmitted && (
             <div className="flex flex-col items-center gap-3 p-6 bg-gradient-to-br from-primary/10 to-secondary-glow/10 rounded-lg border border-primary/20">
