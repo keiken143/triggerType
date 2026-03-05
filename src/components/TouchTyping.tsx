@@ -232,7 +232,6 @@ const TouchTyping = () => {
               ) : (
                 <Button onClick={handlePause} variant="secondary" size="sm"><Pause className="w-4 h-4 mr-2" />Pause</Button>
               )}
-              <Button onClick={handleReset} variant="outline" size="sm"><RotateCcw className="w-4 h-4 mr-2" />Reset</Button>
             </div>
           </CardTitle>
         </CardHeader>
