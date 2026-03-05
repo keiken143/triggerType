@@ -13,6 +13,8 @@ import {
   Zap,
   TrendingUp,
   FileText,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 const paragraphs = [
@@ -36,6 +38,7 @@ const ParagraphTyping = () => {
   const [testCompleted, setTestCompleted] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [keyErrors, setKeyErrors] = useState<Record<string, number>>({});
+  const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -46,6 +49,29 @@ const ParagraphTyping = () => {
   useEffect(() => {
     setCurrentText(generateParagraph());
   }, [generateParagraph]);
+
+  const generateAIText = async () => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-code", {
+        body: {
+          language: "simple",
+          topic: "Generate a typing practice paragraph of 50-80 words. Use natural, flowing English prose on any interesting topic. No special characters or formatting — just plain text with proper punctuation and capitalization.",
+        },
+      });
+      if (error) throw error;
+      if (data?.code) {
+        setCurrentText(data.code.trim());
+      } else {
+        throw new Error("No text generated");
+      }
+    } catch {
+      toast({ title: "Generation failed", description: "Using preset paragraph instead.", variant: "destructive" });
+      setCurrentText(generateParagraph());
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -187,6 +213,19 @@ const ParagraphTyping = () => {
           <div className="flex items-center justify-between">
             <Button onClick={handleReset} variant="ghost" size="sm" disabled={isTyping}>
               <RotateCcw className="w-4 h-4 mr-2" />New Paragraph
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generateAIText}
+              disabled={isTyping || isGenerating}
+              className="border-primary/50 text-primary hover:bg-primary/10"
+            >
+              {isGenerating ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+              ) : (
+                <><Sparkles className="w-4 h-4 mr-2" />Generative Text</>
+              )}
             </Button>
           </div>
 
