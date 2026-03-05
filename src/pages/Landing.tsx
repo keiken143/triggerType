@@ -4,12 +4,9 @@ import Navbar from "@/components/Navbar";
 import { 
   Brain, 
   Target, 
-  TrendingUp, 
-  Code, 
   Users, 
   Zap,
   BarChart3,
-  Trophy
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,18 +24,6 @@ const Landing = () => {
       icon: Target,
       title: "ML-Powered Roadmap",
       description: "Personalized practice paths that adapt to your typing behavior over time.",
-      color: "text-secondary-glow"
-    },
-    {
-      icon: TrendingUp,
-      title: "Typing Biometrics",
-      description: "Analyze hold time, transition lag, and rhythm to build your unique typing fingerprint.",
-      color: "text-primary"
-    },
-    {
-      icon: Code,
-      title: "Developer Mode + Notation Training",
-      description: "Personalize practice paths that adapt to your typing behavior over time.",
       color: "text-secondary-glow"
     },
     {
@@ -105,7 +90,7 @@ const Landing = () => {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
