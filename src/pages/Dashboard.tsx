@@ -544,7 +544,7 @@ const Dashboard = () => {
                 {!aiAnalysis && !analysisLoading && (
                   <Button 
                     onClick={fetchAIAnalysis}
-                    className="w-full transition-transform active:scale-95 hover:scale-105"
+                    className="w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25 active:scale-95 active:shadow-none active:brightness-90"
                     disabled={recentTests.length === 0}
                   >
                     <Brain className="h-4 w-4 mr-2" />
@@ -586,7 +586,7 @@ const Dashboard = () => {
                 {!performanceAnalysis && !performanceLoading && (
                   <Button 
                     onClick={fetchPerformanceAnalysis}
-                    className="w-full transition-transform active:scale-95 hover:scale-105"
+                    className="w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25 active:scale-95 active:shadow-none active:brightness-90"
                     disabled={recentTests.length === 0}
                   >
                     <TrendingUp className="h-4 w-4 mr-2" />
