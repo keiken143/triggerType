@@ -205,15 +205,28 @@ const ParagraphTyping = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-6 bg-surface rounded-lg border border-border/50 overflow-auto min-h-[150px] flex items-center justify-center">
-            <p className="text-base leading-relaxed whitespace-pre-wrap w-full">
+            <p className="text-base leading-relaxed whitespace-pre-wrap w-full font-mono">
               {currentText.split("").map((char, index) => (
-                <span key={index} className={`${getCharacterClass(index)} transition-all duration-150`}>{char}</span>
+                <span key={index} className={`${getCharacterClass(index)} transition-all duration-150`}>{char === "\t" ? "    " : char}</span>
               ))}
             </p>
           </div>
           <textarea
             value={typedText}
             onChange={handleTextChange}
+            onKeyDown={(e) => {
+              if (e.key === "Tab") {
+                e.preventDefault();
+                if (!isTyping) return;
+                const target = e.target as HTMLTextAreaElement;
+                const start = target.selectionStart;
+                const spaces = "    ";
+                const newText = typedText.slice(0, start) + spaces + typedText.slice(start);
+                const syntheticEvent = { target: { value: newText } } as React.ChangeEvent<HTMLTextAreaElement>;
+                handleTextChange(syntheticEvent);
+                setTimeout(() => { target.selectionStart = target.selectionEnd = start + 4; }, 0);
+              }
+            }}
             placeholder={isTyping ? "Start typing the paragraph..." : "Click Start to begin"}
             disabled={!isTyping}
             onPaste={(e) => e.preventDefault()}
