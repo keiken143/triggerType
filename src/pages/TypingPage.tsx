@@ -173,6 +173,7 @@ const TypingPage = () => {
       if (!session) { toast({ title: "Authentication Required", description: "Please log in.", variant: "destructive" }); return; }
       const { data, error } = await supabase.functions.invoke('generate-adaptive-practice', {
         headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { language: selectedLanguage },
       });
       if (error) throw error;
       if (data.error) {
@@ -182,7 +183,7 @@ const TypingPage = () => {
       setCurrentText(data.text); setAdaptiveDifficulty(data.difficultyDescription);
       setAdaptiveMetrics(data.metrics); setTypedText(""); setWpm(0); setAccuracy(100);
       setTestCompleted(false); setTestSubmitted(false); setKeyErrors({});
-      toast({ title: "Adaptive Practice Ready!", description: `Generated ${data.difficultyDescription} practice text.` });
+      toast({ title: "Adaptive Practice Ready!", description: `Generated ${data.difficultyDescription} ${selectedLanguage} practice.` });
     } catch {
       toast({ title: "Error", description: "Failed to generate adaptive practice.", variant: "destructive" });
       setIsAdaptiveMode(false);
