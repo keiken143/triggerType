@@ -173,6 +173,7 @@ const TypingPage = () => {
       if (!session) { toast({ title: "Authentication Required", description: "Please log in.", variant: "destructive" }); return; }
       const { data, error } = await supabase.functions.invoke('generate-adaptive-practice', {
         headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { language: selectedLanguage },
       });
       if (error) throw error;
       if (data.error) {
@@ -182,7 +183,7 @@ const TypingPage = () => {
       setCurrentText(data.text); setAdaptiveDifficulty(data.difficultyDescription);
       setAdaptiveMetrics(data.metrics); setTypedText(""); setWpm(0); setAccuracy(100);
       setTestCompleted(false); setTestSubmitted(false); setKeyErrors({});
-      toast({ title: "Adaptive Practice Ready!", description: `Generated ${data.difficultyDescription} practice text.` });
+      toast({ title: "Adaptive Practice Ready!", description: `Generated ${data.difficultyDescription} ${selectedLanguage} practice.` });
     } catch {
       toast({ title: "Error", description: "Failed to generate adaptive practice.", variant: "destructive" });
       setIsAdaptiveMode(false);
@@ -318,7 +319,7 @@ const TypingPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">AI-powered practice sessions tailored to your performance.</p>
+                  <p className="text-sm text-muted-foreground">AI-powered practice sessions tailored to your performance. Generates {selectedLanguage} code adapted to your WPM, accuracy, and problem keys.</p>
                   {isAdaptiveMode && adaptiveDifficulty && (
                     <div className="p-3 bg-card/50 rounded-lg border border-border/50">
                       <div className="flex items-center justify-between mb-2">

@@ -34,6 +34,15 @@ serve(async (req) => {
       );
     }
 
+    // Parse request body for language
+    let language = 'javascript';
+    try {
+      const body = await req.json();
+      if (body?.language) language = body.language;
+    } catch {
+      // default to javascript if no body
+    }
+
     // Fetch recent typing tests to analyze performance
     const { data: recentTests, error: testsError } = await supabase
       .from('typing_tests')
@@ -43,7 +52,6 @@ serve(async (req) => {
       .limit(10);
 
     if (testsError) {
-      console.error('Error fetching tests:', testsError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch typing history' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -60,9 +68,8 @@ serve(async (req) => {
     // Calculate performance metrics
     const avgWpm = recentTests.reduce((sum, t) => sum + t.wpm, 0) / recentTests.length;
     const avgAccuracy = recentTests.reduce((sum, t) => sum + t.accuracy, 0) / recentTests.length;
-    const totalErrors = recentTests.reduce((sum, t) => sum + t.errors, 0);
 
-    // Aggregate key errors from recent tests
+    // Aggregate key errors
     const keyErrors: Record<string, number> = {};
     recentTests.forEach(test => {
       if (test.key_errors) {
@@ -72,13 +79,12 @@ serve(async (req) => {
       }
     });
 
-    // Identify top 5 problem keys
     const problemKeys = Object.entries(keyErrors)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([key]) => key);
 
-    // Determine difficulty level based on performance
+    // Determine difficulty level
     let difficultyLevel: string;
     let difficultyDescription: string;
     
@@ -93,8 +99,39 @@ serve(async (req) => {
       difficultyDescription = 'Mastering precision';
     }
 
-    // Create AI prompt based on user's performance
-    const systemPrompt = `You are an adaptive typing coach. Generate personalized typing practice text based on the user's performance data.
+    const languageNames: Record<string, string> = {
+      javascript: 'JavaScript',
+      typescript: 'TypeScript',
+      python: 'Python',
+      java: 'Java',
+      csharp: 'C#',
+      cpp: 'C++',
+      rust: 'Rust',
+      simple: 'plain English text',
+    };
+
+    const langName = languageNames[language] || language;
+    const isCode = language !== 'simple';
+
+    const systemPrompt = isCode
+      ? `You are an adaptive typing coach that generates ${langName} code for typing practice.
+
+User Performance:
+- Difficulty Level: ${difficultyLevel}
+- Average WPM: ${Math.round(avgWpm)}
+- Average Accuracy: ${Math.round(avgAccuracy)}%
+- Problem Keys: ${problemKeys.length > 0 ? problemKeys.join(', ') : 'none identified yet'}
+
+Guidelines:
+- Generate ONLY pure ${langName} code. No markdown, no backticks, no explanations.
+- No comments of any kind - no single-line, multi-line, inline comments, or docstrings.
+- Code must be syntactically correct and ready to type.
+- For BEGINNER (WPM < 40 or Accuracy < 85%): Simple variable declarations, basic functions, short statements. 8-12 lines.
+- For INTERMEDIATE (WPM 40-70 or Accuracy 85-92%): Functions with logic, loops, conditionals, moderate complexity. 12-18 lines.
+- For ADVANCED (WPM > 70 and Accuracy > 92%): Complex algorithms, classes, advanced patterns, heavy punctuation. 18-25 lines.
+
+${problemKeys.length > 0 ? `IMPORTANT: The user struggles with these keys: ${problemKeys.join(', ')}. Generate code that naturally uses these characters frequently to help them practice.` : ''}`
+      : `You are an adaptive typing coach. Generate personalized typing practice text.
 
 Difficulty Level: ${difficultyLevel}
 Average WPM: ${Math.round(avgWpm)}
@@ -102,13 +139,13 @@ Average Accuracy: ${Math.round(avgAccuracy)}%
 Problem Keys: ${problemKeys.length > 0 ? problemKeys.join(', ') : 'none identified yet'}
 
 Guidelines:
-- For BEGINNER: Use simple sentences with common words, minimal punctuation, focus on frequently used letters
-- For INTERMEDIATE: Include varied sentence structures, moderate punctuation, some less common words
-- For ADVANCED: Use complex sentences, heavy punctuation, technical terms, uncommon letter combinations
+- For BEGINNER: Simple sentences, common words, minimal punctuation. 
+- For INTERMEDIATE: Varied sentence structures, moderate punctuation, some uncommon words.
+- For ADVANCED: Complex sentences, heavy punctuation, technical terms.
 
-${problemKeys.length > 0 ? `IMPORTANT: Include words that naturally contain these problem keys: ${problemKeys.join(', ')}. Spread them throughout the text.` : ''}
+${problemKeys.length > 0 ? `IMPORTANT: Include words containing these problem keys: ${problemKeys.join(', ')}.` : ''}
 
-Generate exactly 150-200 words of practice text. Make it engaging, coherent, and appropriately challenging.`;
+Generate exactly 150-200 words of engaging, coherent practice text.`;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
@@ -118,7 +155,6 @@ Generate exactly 150-200 words of practice text. Make it engaging, coherent, and
       );
     }
 
-    // Call Lovable AI to generate adaptive practice text
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -129,10 +165,10 @@ Generate exactly 150-200 words of practice text. Make it engaging, coherent, and
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Generate adaptive typing practice text now.' }
+          { role: 'user', content: isCode ? `Generate adaptive ${langName} code practice now.` : 'Generate adaptive typing practice text now.' }
         ],
         temperature: 0.8,
-        max_tokens: 500,
+        max_tokens: 600,
       }),
     });
 
@@ -166,6 +202,7 @@ Generate exactly 150-200 words of practice text. Make it engaging, coherent, and
     return new Response(
       JSON.stringify({
         text: generatedText,
+        language,
         difficulty: difficultyLevel,
         difficultyDescription,
         metrics: {
