@@ -319,7 +319,7 @@ const TypingPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">AI-powered practice sessions tailored to your performance.</p>
+                  <p className="text-sm text-muted-foreground">AI-powered practice sessions tailored to your performance. Generates {selectedLanguage} code adapted to your WPM, accuracy, and problem keys.</p>
                   {isAdaptiveMode && adaptiveDifficulty && (
                     <div className="p-3 bg-card/50 rounded-lg border border-border/50">
                       <div className="flex items-center justify-between mb-2">
