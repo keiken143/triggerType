@@ -138,7 +138,7 @@ const KeyboardHeatmap = () => {
       <div className="mb-4 sm:mb-6">
         <h3 className="text-lg sm:text-xl font-semibold mb-2">Keyboard Heatmap</h3>
         <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-          Shows which keys you mistype most frequently (based on last 50 tests)
+          Shows which keys you mistype most frequently
         </p>
         
         {/* Legend */}
