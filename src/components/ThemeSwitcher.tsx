@@ -11,8 +11,7 @@ import { useTheme, ThemeName } from "@/hooks/useTheme";
 const themes: { name: ThemeName; label: string; colors: string[] }[] = [
   { name: "original", label: "Original", colors: ["hsl(195,100%,60%)", "hsl(280,100%,70%)"] },
   { name: "sunset", label: "Sunset", colors: ["hsl(24,95%,58%)", "hsl(350,85%,65%)"] },
-  { name: "calm-ocean", label: "Calm Ocean", colors: ["hsl(190,70%,50%)", "hsl(210,60%,55%)"] },
-  { name: "gray-tone", label: "Gray Tone", colors: ["hsl(220,10%,60%)", "hsl(220,8%,45%)"] },
+  { name: "gray-tone", label: "Gray Tone", colors: ["hsl(220,15%,65%)", "hsl(230,12%,50%)"] },
 ];
 
 export const ThemeSwitcher = () => {
