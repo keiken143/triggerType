@@ -2,116 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    --background: 220 27% 8%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 98%;
+    --foreground: 240 10% 3.9%;
 
-    --card: 220 20% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
 
-    --popover: 220 20% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 195 100% 60%;
-    --primary-foreground: 220 27% 8%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 5% 35%;
 
-    --accent: 195 100% 60%;
-    --accent-foreground: 220 27% 8%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 25%;
-    --input: 220 15% 18%;
-    --ring: 195 100% 60%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
 
     --radius: 0.75rem;
 
-    /* Custom TrigType Design Tokens */
     --primary-glow: 195 100% 70%;
     --secondary-glow: 280 100% 70%;
-    --surface: 220 20% 14%;
-    --surface-elevated: 220 15% 20%;
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(195 100% 60%), hsl(280 100% 70%));
-    --gradient-background: linear-gradient(135deg, hsl(220 27% 8%), hsl(220 20% 12%));
-    --gradient-card: linear-gradient(135deg, hsl(220 20% 12%), hsl(220 15% 18%));
-    
-    /* Geometric patterns */
-    --pattern-grid: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23334155' fill-opacity='0.1'%3E%3Cpath d='M0 0h40v40H0z'/%3E%3Cpath d='M20 0v40M0 20h40' stroke='%23334155' stroke-width='1' stroke-opacity='0.1'/%3E%3C/g%3E%3C/svg%3E");
-    
-    /* Shadows */
-    --shadow-glow: 0 0 50px hsl(195 100% 60% / 0.3);
-    --shadow-card: 0 8px 32px hsl(220 27% 8% / 0.5);
-    --shadow-elevated: 0 20px 40px hsl(220 27% 8% / 0.7);
+    --surface: 240 4.8% 96%;
+    --surface-elevated: 0 0% 100%;
 
-    --radius: 0.75rem;
+    --grid-line: rgba(0, 0, 0, 0.05);
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Logo Variables - Refined Metallic Palette for Light Mode */
+    --logo-1: #ffffff;
+    --logo-2: #94a3b8;
+    --logo-3: #cbd5e1;
+    --logo-4: #4a5568;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Made background slightly lighter than 0 0% 4% to improve visibility and contrast */
+    --background: 240 6% 8%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 6% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 6% 12%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 6% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 6% 16%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 6% 16%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 6% 16%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 240 6% 20%;
+    --input: 240 6% 20%;
+    --ring: 0 0% 80%;
+
+    --primary-glow: 195 100% 70%;
+    --secondary-glow: 280 100% 70%;
+    --surface: 240 6% 10%;
+    --surface-elevated: 240 6% 14%;
+
+    --grid-line: rgba(255, 255, 255, 0.05);
+
+    /* Logo Variables - Original Metallic Palette for Dark Mode */
+    --logo-1: #ffffff;
+    --logo-2: #6b6b6b;
+    --logo-3: #d9d9d9;
+    --logo-4: #1a1a1a;
+    --logo-5: #9a9a9a;
+    --logo-6: #4a4a4a;
+    --logo-7: #d0d0d0;
   }
 }
 
@@ -121,6 +102,98 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .token-keyword {
+    @apply text-pink-500 dark:text-pink-400;
+  }
+
+  .token-function {
+    @apply text-blue-500 dark:text-blue-400;
+  }
+
+  .token-string {
+    @apply text-green-600 dark:text-green-400;
+  }
+
+  .token-comment {
+    @apply text-muted-foreground italic;
+  }
+
+  .token-operator {
+    @apply text-cyan-600 dark:text-cyan-400;
+  }
+
+  .token-punctuation {
+    @apply text-neutral-600 dark:text-neutral-400;
+  }
+}
+
+@layer components {
+  .typing-char {
+    @apply text-muted-foreground transition-colors duration-150 ease-out;
+  }
+
+  .typing-char.correct {
+    @apply text-foreground;
+  }
+
+  .typing-char.incorrect {
+    @apply text-red-500 border-b-2 border-red-500/50 pb-[1px];
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-scan {
+  animation: scan 3s linear infinite;
 }

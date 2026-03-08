@@ -43,7 +43,7 @@ serve(async (req) => {
 
     if (!tests || tests.length === 0) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           analysis: "No typing tests found. Complete some tests to get AI-powered analysis of your mistakes and improvement recommendations.",
           hasData: false
         }),
@@ -63,80 +63,57 @@ serve(async (req) => {
     const recentWpm = recentTests.reduce((sum, t) => sum + t.wpm, 0) / recentTests.length;
     const recentAccuracy = recentTests.reduce((sum, t) => sum + Number(t.accuracy), 0) / recentTests.length;
 
-    // Call Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    // Call Gemini
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    const prompt = `Analyze this typing test data and provide specific, actionable insights:
+    const systemPrompt = `You are an expert typing coach. Analyze biometric error patterns and provide HIGHLY CONCISE structural feedback. 
+RULES:
+1. USE ONLY SMALL BULLET POINTS (max 10 words per point).
+2. NO LONG PARAGRAPHS.
+3. BE DATA-DRIVEN AND DIRECT.
+4. USE MARKDOWN BULLETS (-).
+5. STRUCTURE: ## Error Patterns, ## Trends, ## Weaknesses, ## Solutions.`;
 
-Total Tests: ${totalTests}
-Average WPM: ${avgWpm.toFixed(1)}
-Average Accuracy: ${avgAccuracy.toFixed(1)}%
-Total Errors: ${totalErrors}
-Average Errors per Test: ${avgErrors.toFixed(1)}
+    const prompt = `
+    - Total Tests: ${totalTests}
+    - Avg Accuracy: ${avgAccuracy.toFixed(1)}%
+    - Recent Accuracy (last 5): ${recentAccuracy.toFixed(1)}%
+    - Avg Errors per Test: ${avgErrors.toFixed(1)}
+    - Total Error Count: ${totalErrors}
+    - Avg Performance WPM: ${avgWpm.toFixed(1)}
+    - Recent Performance WPM: ${recentWpm.toFixed(1)}
+    `;
 
-Recent Performance (last 5 tests):
-- Recent WPM: ${recentWpm.toFixed(1)}
-- Recent Accuracy: ${recentAccuracy.toFixed(1)}%
-
-Test History (most recent first):
-${tests.slice(0, 10).map((t, i) => `${i + 1}. WPM: ${t.wpm}, Accuracy: ${Number(t.accuracy).toFixed(1)}%, Errors: ${t.errors}, Duration: ${t.test_duration}s`).join('\n')}
-
-Provide a detailed analysis covering:
-1. **Error Patterns**: What specific mistakes are they making based on error frequency and accuracy?
-2. **Performance Trends**: Is their speed improving? Is accuracy consistent?
-3. **Problem Areas**: Identify 3-4 specific weaknesses (e.g., "rushing through tests", "inconsistent accuracy", "high error rate on longer tests")
-4. **Actionable Solutions**: For each problem area, provide 2-3 specific practice techniques or exercises
-5. **Progression Strategy**: Create a clear improvement plan with measurable goals
-
-Format the response in markdown with clear sections and bullet points. Be specific and actionable.`;
-
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert typing coach analyzing performance data. Provide detailed, specific, and actionable feedback to help users improve their typing skills.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+        contents: [{
+          parts: [{ text: `${systemPrompt}\n\nDATA:\n${prompt}` }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 500,
+        }
       }),
     });
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI service requires payment. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
       const errorText = await aiResponse.text();
-      console.error('AI gateway error:', aiResponse.status, errorText);
-      throw new Error('AI analysis failed');
+      console.error('Gemini error:', aiResponse.status, errorText);
+      throw new Error('Gemini analysis failed');
     }
 
     const aiData = await aiResponse.json();
-    const analysis = aiData.choices[0].message.content;
+    const analysis = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "Error analysis unavailable.";
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         analysis,
         hasData: true,
         stats: {
