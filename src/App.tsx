@@ -11,6 +11,7 @@ import TypingPage from "./pages/TypingPage";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import AllTests from "./pages/AllTests";
 
 const queryClient = new QueryClient();
 
