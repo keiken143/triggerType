@@ -149,7 +149,7 @@ const TouchTyping = () => {
     }
     setTypedText(newText);
     const wordsTyped = newText.split(" ").length;
-    const timeElapsed = (60 - timeLeft) / 60;
+    const timeElapsed = (selectedDuration - timeLeft) / 60;
     setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
     let correct = 0;
     for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
