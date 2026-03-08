@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/Navbar";
 import KeyboardHeatmap from "@/components/KeyboardHeatmap";
 import { PerformanceOverTimeChart } from "@/components/charts/PerformanceOverTimeChart";
@@ -11,18 +12,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { 
-  TrendingUp, 
-  Target, 
-  Zap, 
-  Clock, 
-  Calendar,
-  Trophy,
-  Activity,
-  Flame,
-  Brain,
-  AlertCircle,
-  Award
+  TrendingUp, Target, Zap, Clock, Calendar, Trophy,
+  Activity, Flame, Brain, AlertCircle, Award, ChevronRight,
+  BarChart3, Loader2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
