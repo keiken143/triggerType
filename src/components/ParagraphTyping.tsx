@@ -112,7 +112,7 @@ const ParagraphTyping = () => {
       return;
     }
     try {
-      const testDuration = 120 - timeLeft;
+      const testDuration = selectedDuration - timeLeft;
       const characterCount = typedText.length;
       const correctCharacters = Math.round((accuracy / 100) * characterCount);
       const errors = characterCount - correctCharacters;
