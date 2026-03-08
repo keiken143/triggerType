@@ -252,7 +252,7 @@ const TouchTyping = () => {
             tabIndex={0}
             onKeyDown={handleKeyDown}
             onPaste={(e) => e.preventDefault()}
-            className={`p-6 min-h-[180px] max-h-[350px] overflow-y-auto outline-none cursor-text ${
+            className={`p-6 h-[300px] overflow-y-auto outline-none cursor-text ${
               isTyping ? 'focus:ring-1 focus:ring-primary/30 focus:ring-inset' : ''
             }`}
             onClick={() => { if (isTyping) textDisplayRef.current?.focus(); }}
