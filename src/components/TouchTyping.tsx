@@ -301,6 +301,12 @@ const TouchTyping = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Reactive Keyboard */}
+      <ReactiveKeyboard
+        nextKey={isTyping && typedText.length < currentText.length ? currentText[typedText.length] : null}
+        showFingerZones
+      />
     </div>
   );
 };

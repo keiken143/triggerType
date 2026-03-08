@@ -450,6 +450,11 @@ const TypingPage = () => {
                 </CardContent>
               </Card>
 
+              {/* Reactive Keyboard */}
+              <ReactiveKeyboard
+                nextKey={isTyping && typedText.length < currentText.length ? currentText[typedText.length] : null}
+              />
+
               {/* Instructions - compact */}
               <div className="px-1 text-xs text-muted-foreground space-y-1">
                 <p>• Select a language and click <strong>Start</strong> to begin • Characters highlight as you type — <span className="text-primary">correct</span> / <span className="text-destructive">incorrect</span></p>
