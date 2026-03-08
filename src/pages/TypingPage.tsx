@@ -116,7 +116,7 @@ const TypingPage = () => {
     }
   };
 
-  const handleStart = () => setIsTyping(true);
+  const handleStart = () => { startTimeRef.current = Date.now(); setIsTyping(true); };
   const handlePause = () => setIsTyping(false);
   const handleReset = () => {
     setIsTyping(false);
