@@ -455,6 +455,11 @@ const TypingPage = () => {
                         <Pause className="w-4 h-4 mr-2" />Pause
                       </Button>
                     )}
+                    {selectedDuration === 0 && isTyping && (
+                      <Button onClick={() => { setIsTyping(false); setTestCompleted(true); }} variant="default" size="sm">
+                        <Target className="w-4 h-4 mr-2" />Finish
+                      </Button>
+                    )}
                     <Button onClick={handleReset} variant="outline" size="sm">
                       <RotateCcw className="w-4 h-4 mr-2" />Reset
                     </Button>
