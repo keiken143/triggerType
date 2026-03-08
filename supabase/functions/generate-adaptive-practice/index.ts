@@ -40,8 +40,9 @@ serve(async (req) => {
     const userId = data.claims.sub;
 
     // Fetch recent typing tests to analyze performance
+    const ALLOWED_LANGUAGES = ['javascript', 'typescript', 'python', 'java', 'csharp', 'cpp', 'rust', 'go', 'ruby', 'swift', 'kotlin'];
     const { language } = await req.json().catch(() => ({}));
-    const targetLanguage = language || 'javascript';
+    const targetLanguage = (language && typeof language === 'string' && ALLOWED_LANGUAGES.includes(language.toLowerCase())) ? language.toLowerCase() : 'javascript';
 
     // Fetch recent typing tests filtered by language
     const { data: recentTests, error: testsError } = await supabase
@@ -192,7 +193,7 @@ Generate ONLY syntactically correct, executable ${langLabel} code. No comments, 
   } catch (error) {
     console.error('Error in generate-adaptive-practice:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An internal error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

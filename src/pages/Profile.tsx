@@ -151,14 +151,16 @@ const Profile = () => {
       }
       const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage.from('avatars').createSignedUrl(fileName, 31536000);
+      if (signedUrlError) throw signedUrlError;
+      const avatarUrl = signedUrlData.signedUrl;
       const { data: existingProfile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
       let updateResult;
       if (existingProfile) {
-        updateResult = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('user_id', user.id);
+        updateResult = await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('user_id', user.id);
       } else {
         updateResult = await supabase.from('profiles').insert({
-          user_id: user.id, avatar_url: publicUrl, display_name: profile?.display_name, username: profile?.username
+          user_id: user.id, avatar_url: avatarUrl, display_name: profile?.display_name, username: profile?.username
         });
       }
       if (updateResult.error) throw updateResult.error;

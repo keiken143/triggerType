@@ -153,7 +153,7 @@ Format the response in markdown with clear sections and bullet points. Be specif
   } catch (error) {
     console.error('Error in analyze-typing-errors:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An internal error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
