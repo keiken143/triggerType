@@ -89,6 +89,7 @@ export const Navbar = () => {
         {/* Desktop User Section */}
         <div className="hidden md:flex items-center space-x-3">
           <ThemeSwitcher />
+          {user ? (
             <div className="flex items-center space-x-3">
               <Link to="/profile" className="flex items-center space-x-2">
                 <Avatar className="w-8 h-8 ring-2 ring-primary/20 hover:ring-primary/40 transition-all">
@@ -124,7 +125,7 @@ export const Navbar = () => {
               </Link>
             </div>
           )}
-          {user ? (
+        </div>
 
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center space-x-2">
