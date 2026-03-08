@@ -104,7 +104,9 @@ serve(async (req) => {
     }
 
     // Create AI prompt based on user's performance
-    const systemPrompt = `You are an adaptive typing coach. Generate personalized typing practice text based on the user's performance data.
+    const langLabel = targetLanguage === 'csharp' ? 'C#' : targetLanguage === 'cpp' ? 'C++' : targetLanguage.charAt(0).toUpperCase() + targetLanguage.slice(1);
+
+    const systemPrompt = `You are an adaptive coding coach. Generate ONLY pure ${langLabel} code based on the user's performance data. No markdown, no backticks, no explanations, no comments of any kind.
 
 Difficulty Level: ${difficultyLevel}
 Average WPM: ${Math.round(avgWpm)}
@@ -112,13 +114,13 @@ Average Accuracy: ${Math.round(avgAccuracy)}%
 Problem Keys: ${problemKeys.length > 0 ? problemKeys.join(', ') : 'none identified yet'}
 
 Guidelines:
-- For BEGINNER: Use simple sentences with common words, minimal punctuation, focus on frequently used letters
-- For INTERMEDIATE: Include varied sentence structures, moderate punctuation, some less common words
-- For ADVANCED: Use complex sentences, heavy punctuation, technical terms, uncommon letter combinations
+- For BEGINNER: Simple ${langLabel} code with basic syntax — variables, loops, simple functions. 10-15 lines.
+- For INTERMEDIATE: Moderate ${langLabel} code with classes, error handling, data structures. 15-20 lines.
+- For ADVANCED: Complex ${langLabel} code with advanced patterns, generics, async/await, algorithms. 20-25 lines.
 
-${problemKeys.length > 0 ? `IMPORTANT: Include words that naturally contain these problem keys: ${problemKeys.join(', ')}. Spread them throughout the text.` : ''}
+${problemKeys.length > 0 ? `CRITICAL: The code MUST heavily use these problem keys/characters: ${problemKeys.join(', ')}. Choose variable names, operators, and syntax that naturally incorporate them.` : ''}
 
-Generate exactly 150-200 words of practice text. Make it engaging, coherent, and appropriately challenging.`;
+Generate ONLY syntactically correct, executable ${langLabel} code. No comments, no docstrings, no documentation. Only pure code ready to type.`;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
