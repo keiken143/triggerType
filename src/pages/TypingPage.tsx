@@ -77,15 +77,18 @@ const TypingPage = () => {
     fetchTestCount();
   }, [user]);
 
+  const [elapsedTime, setElapsedTime] = useState(0);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isTyping && selectedDuration > 0 && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
+      interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (selectedDuration > 0 && timeLeft === 0) {
       setIsTyping(false);
       setTestCompleted(true);
+    }
+    if (isTyping && selectedDuration === 0) {
+      interval = setInterval(() => setElapsedTime(Math.round((Date.now() - startTimeRef.current) / 1000)), 1000);
     }
     return () => clearInterval(interval);
   }, [isTyping, timeLeft, selectedDuration]);
