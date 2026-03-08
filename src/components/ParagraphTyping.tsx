@@ -1,20 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Play,
-  Pause,
-  Timer,
-  Target,
-  Zap,
-  TrendingUp,
-  FileText,
-  Sparkles,
-  Loader2,
-  CheckCircle2,
+  Play, Pause, Timer, Target, Zap, TrendingUp,
+  FileText, Sparkles, Loader2, CheckCircle2,
 } from "lucide-react";
 
 const paragraphs = [
@@ -49,6 +41,8 @@ const ParagraphTyping = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const textDisplayRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
 
   const generateParagraph = useCallback(() => paragraphs[Math.floor(Math.random() * paragraphs.length)], []);
 
@@ -76,7 +70,11 @@ const ParagraphTyping = () => {
     return () => clearInterval(interval);
   }, [isTyping, timeLeft]);
 
-  const handleStart = () => setIsTyping(true);
+  useEffect(() => {
+    if (cursorRef.current) cursorRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [typedText]);
+
+  const handleStart = () => { setIsTyping(true); setTimeout(() => textDisplayRef.current?.focus(), 50); };
   const handlePause = () => setIsTyping(false);
 
   const handleSubmitTest = async () => {
@@ -95,20 +93,47 @@ const ParagraphTyping = () => {
     } catch { toast({ title: "Error", description: "Failed to save test result.", variant: "destructive" }); }
   };
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!isTyping) return;
-    const newText = e.target.value;
-    if (newText.length > typedText.length) {
-      const newIndex = newText.length - 1;
-      if (newText[newIndex] !== currentText[newIndex]) setKeyErrors((prev) => ({ ...prev, [newText[newIndex].toLowerCase()]: (prev[newText[newIndex].toLowerCase()] || 0) + 1 }));
-    }
-    setTypedText(newText);
+  const updateStats = (newText: string) => {
     const wordsTyped = newText.split(" ").length;
     const timeElapsed = (selectedDuration - timeLeft) / 60;
     setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
     let correct = 0;
     for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
     setAccuracy(newText.length > 0 ? Math.round((correct / newText.length) * 100) : 100);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isTyping) return;
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      return;
+    }
+
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (typedText.length > 0) {
+        const newText = typedText.slice(0, -1);
+        setTypedText(newText);
+        updateStats(newText);
+      }
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      return;
+    }
+
+    if (e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+
+    e.preventDefault();
+    const newText = typedText + e.key;
+    if (e.key !== currentText[typedText.length]) {
+      setKeyErrors(prev => ({ ...prev, [e.key.toLowerCase()]: (prev[e.key.toLowerCase()] || 0) + 1 }));
+    }
+    setTypedText(newText);
+    updateStats(newText);
   };
 
   const getCharacterClass = (index: number) => {
@@ -170,8 +195,7 @@ const ParagraphTyping = () => {
             </span>
             <div className="flex items-center gap-2">
               <Button
-                variant="ghost"
-                size="sm"
+                variant="ghost" size="sm"
                 onClick={generateAIText}
                 disabled={isTyping || isGenerating}
                 className="text-xs h-8 text-primary hover:bg-primary/10"
@@ -191,41 +215,41 @@ const ParagraphTyping = () => {
             </div>
           </div>
 
-          {/* Text display */}
-          <div className="p-6 min-h-[180px] flex items-center">
+          {/* Text display - inline keystroke capture */}
+          <div
+            ref={textDisplayRef}
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
+            onPaste={(e) => e.preventDefault()}
+            className={`p-6 min-h-[180px] max-h-[350px] overflow-y-auto outline-none cursor-text ${
+              isTyping ? 'focus:ring-1 focus:ring-primary/30 focus:ring-inset' : ''
+            }`}
+            onClick={() => { if (isTyping) textDisplayRef.current?.focus(); }}
+          >
             <p className="text-base leading-[2] whitespace-pre-wrap w-full tracking-wide">
               {currentText.split("").map((char, index) => (
-                <span key={index} className={`${getCharacterClass(index)} transition-colors duration-100`}>{char === "\t" ? "    " : char}</span>
+                <span key={index} className={`${getCharacterClass(index)} transition-colors duration-100 relative`}>
+                  {index === typedText.length && isTyping && (
+                    <span
+                      ref={cursorRef}
+                      className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary animate-pulse rounded-full"
+                      style={{ transform: 'translateX(-1px)' }}
+                    />
+                  )}
+                  {char}
+                </span>
               ))}
+              {typedText.length === currentText.length && isTyping && (
+                <span className="inline-block w-[2px] h-[1.2em] bg-primary animate-pulse rounded-full align-middle" />
+              )}
             </p>
           </div>
 
-          {/* Input */}
-          <div className="px-5 pb-5">
-            <textarea
-              value={typedText}
-              onChange={handleTextChange}
-              onKeyDown={(e) => {
-                if (e.key === "Tab") {
-                  e.preventDefault();
-                  if (!isTyping) return;
-                  const target = e.target as HTMLTextAreaElement;
-                  const start = target.selectionStart;
-                  const spaces = "    ";
-                  const newText = typedText.slice(0, start) + spaces + typedText.slice(start);
-                  const syntheticEvent = { target: { value: newText } } as React.ChangeEvent<HTMLTextAreaElement>;
-                  handleTextChange(syntheticEvent);
-                  setTimeout(() => { target.selectionStart = target.selectionEnd = start + 4; }, 0);
-                }
-              }}
-              placeholder={isTyping ? "Start typing the paragraph..." : "Click Start to begin"}
-              disabled={!isTyping}
-              onPaste={(e) => e.preventDefault()}
-              onCut={(e) => e.preventDefault()}
-              onCopy={(e) => e.preventDefault()}
-              className="w-full h-28 p-4 bg-surface/50 border border-border/30 rounded-xl resize-none focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm disabled:opacity-40 transition-all"
-            />
-          </div>
+          {isTyping && (
+            <div className="px-5 pb-3 text-center">
+              <p className="text-xs text-muted-foreground/60">Click the text area above and start typing</p>
+            </div>
+          )}
 
           {testCompleted && !testSubmitted && (
             <div className="mx-5 mb-5 p-5 bg-gradient-to-r from-primary/10 to-secondary-glow/10 rounded-xl border border-primary/20 text-center">
