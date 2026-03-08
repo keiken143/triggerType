@@ -695,7 +695,7 @@ const Dashboard = () => {
                    recentTests.slice(0, 3).reduce((sum, t) => sum + t.errors, 0) > 
                    recentTests.slice(-3).reduce((sum, t) => sum + t.errors, 0) && (
                     <li className="flex gap-2">
-                      <TrendingUp className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <TrendingUp className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Improving Error Rate</p>
                         <p className="text-sm text-muted-foreground">Great progress! Your recent tests show fewer errors.</p>
