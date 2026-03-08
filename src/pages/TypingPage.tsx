@@ -145,39 +145,69 @@ const TypingPage = () => {
     finally { setIsGenerating(false); }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      if (!isTyping) return;
-      const textarea = e.currentTarget;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newText = typedText.substring(0, start) + '\t' + typedText.substring(end);
-      setTypedText(newText);
-      setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = start + 1; }, 0);
-      const wordsTyped = newText.split(' ').length;
-      const timeElapsed = selectedDuration > 0 ? (selectedDuration - timeLeft) / 60 : (Date.now() - startTimeRef.current) / 60000;
-      setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
-      let correct = 0;
-      for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
-      setAccuracy(newText.length > 0 ? Math.round((correct / newText.length) * 100) : 100);
-    }
-  };
+  const codeDisplayRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!isTyping) return;
-    const newText = e.target.value;
-    if (newText.length > typedText.length) {
-      const newIndex = newText.length - 1;
-      if (newText[newIndex] !== currentText[newIndex]) setKeyErrors(prev => ({ ...prev, [newText[newIndex].toLowerCase()]: (prev[newText[newIndex].toLowerCase()] || 0) + 1 }));
+  useEffect(() => {
+    if (cursorRef.current) {
+      cursorRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
-    setTypedText(newText);
+  }, [typedText]);
+
+  const updateStats = (newText: string) => {
     const wordsTyped = newText.split(' ').length;
     const timeElapsed = selectedDuration > 0 ? (selectedDuration - timeLeft) / 60 : (Date.now() - startTimeRef.current) / 60000;
     setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
     let correct = 0;
     for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
     setAccuracy(newText.length > 0 ? Math.round((correct / newText.length) * 100) : 100);
+  };
+
+  const handleCodeKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isTyping) return;
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const newText = typedText + '\t';
+      if (newText[newText.length - 1] !== currentText[newText.length - 1]) {
+        setKeyErrors(prev => ({ ...prev, 'tab': (prev['tab'] || 0) + 1 }));
+      }
+      setTypedText(newText);
+      updateStats(newText);
+      return;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const newText = typedText + '\n';
+      if (newText[newText.length - 1] !== currentText[newText.length - 1]) {
+        setKeyErrors(prev => ({ ...prev, 'enter': (prev['enter'] || 0) + 1 }));
+      }
+      setTypedText(newText);
+      updateStats(newText);
+      return;
+    }
+
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (typedText.length > 0) {
+        const newText = typedText.slice(0, -1);
+        setTypedText(newText);
+        updateStats(newText);
+      }
+      return;
+    }
+
+    // Ignore modifier keys and special keys
+    if (e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+
+    e.preventDefault();
+    const newText = typedText + e.key;
+    if (e.key !== currentText[typedText.length]) {
+      setKeyErrors(prev => ({ ...prev, [e.key.toLowerCase()]: (prev[e.key.toLowerCase()] || 0) + 1 }));
+    }
+    setTypedText(newText);
+    updateStats(newText);
   };
 
   const getCharacterClass = (index: number) => {
