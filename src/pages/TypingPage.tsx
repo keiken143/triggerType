@@ -52,6 +52,7 @@ const TypingPage = () => {
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState("");
   const [adaptiveMetrics, setAdaptiveMetrics] = useState<any>(null);
   const [testCount, setTestCount] = useState(0);
+  const startTimeRef = useRef(0);
   
   const { user } = useAuth();
   const { toast } = useToast();
