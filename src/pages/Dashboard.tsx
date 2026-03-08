@@ -583,10 +583,10 @@ const Dashboard = () => {
             </Card>
 
             {/* AI Performance Analysis */}
-            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary-glow/10 border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                   AI Performance Analysis & Tailored Suggestions
                 </CardTitle>
                 <CardDescription>Get personalized recommendations based on your typing data</CardDescription>
