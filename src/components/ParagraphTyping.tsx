@@ -96,7 +96,7 @@ const ParagraphTyping = () => {
   const handlePause = () => setIsTyping(false);
   const handleReset = () => {
     setIsTyping(false);
-    setTimeLeft(120);
+    setTimeLeft(selectedDuration);
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
