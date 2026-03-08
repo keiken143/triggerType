@@ -189,7 +189,21 @@ const ParagraphTyping = () => {
               <FileText className="w-5 h-5" />
               Paragraph Typing
             </span>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
+              <div className="flex gap-1">
+                {TIME_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant={selectedDuration === opt.value ? "default" : "outline"}
+                    size="sm"
+                    disabled={isTyping}
+                    onClick={() => { setSelectedDuration(opt.value); setTimeLeft(opt.value); }}
+                    className="text-xs px-2 py-1 h-7"
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
               {!isTyping ? (
                 <Button onClick={handleStart} size="sm"><Play className="w-4 h-4 mr-2" />Start</Button>
               ) : (
