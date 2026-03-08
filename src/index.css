@@ -150,6 +150,49 @@ All colors MUST be HSL.
     --shadow-card: 0 8px 32px hsl(230 10% 4% / 0.6);
     --shadow-elevated: 0 20px 40px hsl(230 10% 4% / 0.8);
   }
+
+  /* Nature - Forest Greens & Earth Tones */
+  [data-theme="nature"] {
+    --background: 160 18% 7%;
+    --foreground: 90 15% 94%;
+
+    --card: 155 15% 11%;
+    --card-foreground: 90 15% 94%;
+
+    --popover: 155 15% 11%;
+    --popover-foreground: 90 15% 94%;
+
+    --primary: 150 60% 45%;
+    --primary-foreground: 160 18% 7%;
+
+    --secondary: 155 12% 19%;
+    --secondary-foreground: 90 15% 94%;
+
+    --muted: 155 10% 16%;
+    --muted-foreground: 140 12% 55%;
+
+    --accent: 150 60% 45%;
+    --accent-foreground: 160 18% 7%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 90 15% 94%;
+
+    --border: 155 10% 21%;
+    --input: 155 10% 16%;
+    --ring: 150 60% 45%;
+
+    --primary-glow: 80 50% 55%;
+    --secondary-glow: 35 60% 55%;
+    --surface: 155 14% 13%;
+    --surface-elevated: 155 10% 18%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(150 60% 45%), hsl(80 50% 55%));
+    --gradient-background: linear-gradient(135deg, hsl(160 18% 7%), hsl(155 15% 11%));
+    --gradient-card: linear-gradient(135deg, hsl(155 15% 11%), hsl(155 10% 16%));
+    --shadow-glow: 0 0 50px hsl(150 60% 45% / 0.25);
+    --shadow-card: 0 8px 32px hsl(160 18% 5% / 0.5);
+    --shadow-elevated: 0 20px 40px hsl(160 18% 5% / 0.7);
+  }
 }
 
 @layer base {

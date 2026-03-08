@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type ThemeName = "original" | "sunset" | "gray-tone";
+export type ThemeName = "original" | "sunset" | "gray-tone" | "nature";
 
 interface ThemeContextType {
   theme: ThemeName;
