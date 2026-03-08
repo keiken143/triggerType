@@ -129,6 +129,7 @@ export const Navbar = () => {
 
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center space-x-2">
+          <ThemeSwitcher />
           {user && (
             <Link to="/profile">
               <Avatar className="w-8 h-8 ring-2 ring-primary/20">
