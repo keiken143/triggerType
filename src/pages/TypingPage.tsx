@@ -387,7 +387,7 @@ const TypingPage = () => {
                     tabIndex={0}
                     onKeyDown={handleCodeKeyDown}
                     onPaste={(e) => e.preventDefault()}
-                    className={`p-6 min-h-[220px] max-h-[400px] overflow-y-auto outline-none cursor-text ${
+                    className={`p-6 h-[350px] overflow-y-auto outline-none cursor-text ${
                       isTyping ? 'focus:ring-1 focus:ring-primary/30 focus:ring-inset' : ''
                     }`}
                     onClick={() => { if (isTyping) codeDisplayRef.current?.focus(); }}
