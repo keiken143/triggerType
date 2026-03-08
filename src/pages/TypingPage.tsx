@@ -252,18 +252,18 @@ const TypingPage = () => {
   const progress = currentText.length > 0 ? (typedText.length / currentText.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
-      <div className="fixed inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: "var(--pattern-grid)" }} />
+    <div className="min-h-screen bg-background">
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "var(--pattern-grid)" }} />
       <Navbar />
       
-      <div className="container mx-auto px-6 pt-24 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 pt-24 pb-12">
         <Tabs defaultValue="typing" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-surface border border-border/50">
-            <TabsTrigger value="typing" className="text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className="grid w-full grid-cols-2 mb-8 h-11 bg-card/80 border border-border/50 rounded-xl">
+            <TabsTrigger value="typing" className="rounded-lg text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
               <Keyboard className="w-4 h-4 mr-2" />
               Typing
             </TabsTrigger>
-            <TabsTrigger value="code-typing" className="text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="code-typing" className="rounded-lg text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
               <Code className="w-4 h-4 mr-2" />
               Code Typing
             </TabsTrigger>
@@ -272,12 +272,12 @@ const TypingPage = () => {
           {/* Tab 1: Typing (Touch Typing + Paragraph Typing) */}
           <TabsContent value="typing">
             <Tabs defaultValue="touch" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/50 border border-border/50">
-                <TabsTrigger value="touch" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/50 border border-border/30 rounded-lg">
+                <TabsTrigger value="touch" className="rounded-md data-[state=active]:bg-primary/15 data-[state=active]:text-primary text-sm">
                   <Keyboard className="w-4 h-4 mr-2" />
                   Touch Typing
                 </TabsTrigger>
-                <TabsTrigger value="paragraph" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+                <TabsTrigger value="paragraph" className="rounded-md data-[state=active]:bg-primary/15 data-[state=active]:text-primary text-sm">
                   <FileText className="w-4 h-4 mr-2" />
                   Paragraph Typing
                 </TabsTrigger>
@@ -294,29 +294,29 @@ const TypingPage = () => {
           {/* Tab 2: Code Typing (existing module) */}
           <TabsContent value="code-typing">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardContent className="p-6 flex items-center space-x-4">
-                  <div className="p-3 bg-primary/10 rounded-lg"><Timer className="w-6 h-6 text-primary" /></div>
-                  <div><p className="text-sm text-muted-foreground">Time</p><p className="text-2xl font-bold">{selectedDuration === 0 ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, '0')}` : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}</p></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="p-2.5 bg-primary/10 rounded-xl"><Timer className="w-5 h-5 text-primary" /></div>
+                  <div><p className="text-xs text-muted-foreground">Time</p><p className="text-xl font-bold tabular-nums">{selectedDuration === 0 ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, '0')}` : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}</p></div>
                 </CardContent>
               </Card>
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardContent className="p-6 flex items-center space-x-4">
-                  <div className="p-3 bg-secondary-glow/10 rounded-lg"><Zap className="w-6 h-6 text-secondary-glow" /></div>
-                  <div><p className="text-sm text-muted-foreground">WPM</p><p className="text-2xl font-bold">{wpm}</p></div>
+              <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="p-2.5 bg-secondary-glow/10 rounded-xl"><Zap className="w-5 h-5 text-secondary-glow" /></div>
+                  <div><p className="text-xs text-muted-foreground">WPM</p><p className="text-xl font-bold tabular-nums">{wpm}</p></div>
                 </CardContent>
               </Card>
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardContent className="p-6 flex items-center space-x-4">
-                  <div className="p-3 bg-primary/10 rounded-lg"><Target className="w-6 h-6 text-primary" /></div>
-                  <div><p className="text-sm text-muted-foreground">Accuracy</p><p className="text-2xl font-bold">{accuracy}%</p></div>
+              <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="p-2.5 bg-primary/10 rounded-xl"><Target className="w-5 h-5 text-primary" /></div>
+                  <div><p className="text-xs text-muted-foreground">Accuracy</p><p className="text-xl font-bold tabular-nums">{accuracy}%</p></div>
                 </CardContent>
               </Card>
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardContent className="p-6 flex items-center space-x-4">
-                  <div className="p-3 bg-secondary-glow/10 rounded-lg"><TrendingUp className="w-6 h-6 text-secondary-glow" /></div>
-                  <div><p className="text-sm text-muted-foreground">Progress</p><p className="text-2xl font-bold">{Math.round(progress)}%</p></div>
+              <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+                <CardContent className="p-5 flex items-center gap-4">
+                  <div className="p-2.5 bg-secondary-glow/10 rounded-xl"><TrendingUp className="w-5 h-5 text-secondary-glow" /></div>
+                  <div><p className="text-xs text-muted-foreground">Progress</p><p className="text-xl font-bold tabular-nums">{Math.round(progress)}%</p></div>
                 </CardContent>
               </Card>
             </div>
@@ -397,9 +397,9 @@ const TypingPage = () => {
                   </Select>
                 </div>
 
-                <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg space-y-3">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary-glow/10 border border-primary/20 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    <Sparkles className="w-4 h-4 text-primary" />
                     <span className="font-medium text-sm">AI Content Generator</span>
                   </div>
                   <p className="text-sm text-muted-foreground">Generate custom code snippets using AI for typing practice</p>

@@ -340,73 +340,73 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
+    <div className="min-h-screen bg-background">
       <div 
-        className="fixed inset-0 opacity-5"
+        className="fixed inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: "var(--pattern-grid)" }}
       />
       
       <Navbar />
       
-      <div className="container mx-auto px-6 pt-24 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 pt-24 pb-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Progress Dashboard</h1>
-          <p className="text-muted-foreground">Track your typing evolution and biometric patterns</p>
+          <h1 className="text-3xl font-bold mb-1">Progress Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Track your typing evolution and patterns</p>
         </div>
 
         {/* Overview Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardContent className="p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Average WPM</p>
-                  <p className="text-2xl font-bold">{stats.avgWpm}</p>
+                  <p className="text-xs text-muted-foreground">Average WPM</p>
+                  <p className="text-2xl font-bold tabular-nums">{stats.avgWpm}</p>
                 </div>
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Zap className="w-6 h-6 text-primary" />
+                <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <Zap className="w-5 h-5 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardContent className="p-6">
+          <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Best WPM</p>
-                  <p className="text-2xl font-bold">{stats.bestWpm}</p>
+                  <p className="text-xs text-muted-foreground">Best WPM</p>
+                  <p className="text-2xl font-bold tabular-nums">{stats.bestWpm}</p>
                 </div>
-                <div className="p-3 bg-secondary-glow/10 rounded-lg">
-                  <Trophy className="w-6 h-6 text-secondary-glow" />
+                <div className="p-2.5 bg-secondary-glow/10 rounded-xl">
+                  <Trophy className="w-5 h-5 text-secondary-glow" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardContent className="p-6">
+          <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Accuracy</p>
-                  <p className="text-2xl font-bold">{stats.accuracy}%</p>
+                  <p className="text-xs text-muted-foreground">Accuracy</p>
+                  <p className="text-2xl font-bold tabular-nums">{stats.accuracy}%</p>
                 </div>
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <Target className="w-6 h-6 text-primary" />
+                <div className="p-2.5 bg-primary/10 rounded-xl">
+                  <Target className="w-5 h-5 text-primary" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardContent className="p-6">
+          <Card className="bg-card/60 backdrop-blur-sm border-border/30">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Streak</p>
-                  <p className="text-2xl font-bold">{stats.streak} days</p>
+                  <p className="text-xs text-muted-foreground">Streak</p>
+                  <p className="text-2xl font-bold tabular-nums">{stats.streak} <span className="text-sm font-normal text-muted-foreground">days</span></p>
                 </div>
-                <div className="p-3 bg-secondary-glow/10 rounded-lg">
-                  <Flame className="w-6 h-6 text-secondary-glow" />
+                <div className="p-2.5 bg-secondary-glow/10 rounded-xl">
+                  <Flame className="w-5 h-5 text-secondary-glow" />
                 </div>
               </div>
             </CardContent>
@@ -542,10 +542,10 @@ const Dashboard = () => {
 
           <TabsContent value="analysis" className="space-y-6">
             {/* AI Error Analysis */}
-            <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/20">
+            <Card className="bg-gradient-to-br from-secondary-glow/10 to-primary/10 border-secondary-glow/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-purple-500" />
+                  <Brain className="h-5 w-5 text-secondary-glow" />
                   AI Error Analysis
                 </CardTitle>
               </CardHeader>
@@ -583,10 +583,10 @@ const Dashboard = () => {
             </Card>
 
             {/* AI Performance Analysis */}
-            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+            <Card className="bg-gradient-to-br from-primary/10 to-primary-glow/10 border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  <TrendingUp className="h-5 w-5 text-primary" />
                   AI Performance Analysis & Tailored Suggestions
                 </CardTitle>
                 <CardDescription>Get personalized recommendations based on your typing data</CardDescription>
@@ -631,7 +631,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-500" />
+                  <AlertCircle className="h-5 w-5 text-destructive" />
                   Error Analysis
                 </CardTitle>
               </CardHeader>
@@ -666,7 +666,7 @@ const Dashboard = () => {
                 <ul className="space-y-3">
                   {recentTests.length > 3 && stats.avgWpm > stats.bestWpm * 0.7 && (
                     <li className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Rushing Through Tests</p>
                         <p className="text-sm text-muted-foreground">Your speed varies significantly. Focus on maintaining consistent pace.</p>
@@ -675,7 +675,7 @@ const Dashboard = () => {
                   )}
                   {recentTests.length > 5 && Math.abs(recentTests[0].accuracy - recentTests[recentTests.length - 1].accuracy) > 10 && (
                     <li className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Inconsistent Accuracy</p>
                         <p className="text-sm text-muted-foreground">Your accuracy fluctuates between tests. Practice at a comfortable pace first.</p>
@@ -684,7 +684,7 @@ const Dashboard = () => {
                   )}
                   {stats.avgAccuracy < 85 && (
                     <li className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Low Overall Accuracy</p>
                         <p className="text-sm text-muted-foreground">Slow down and focus on hitting the right keys. Speed will come with practice.</p>
@@ -695,7 +695,7 @@ const Dashboard = () => {
                    recentTests.slice(0, 3).reduce((sum, t) => sum + t.errors, 0) > 
                    recentTests.slice(-3).reduce((sum, t) => sum + t.errors, 0) && (
                     <li className="flex gap-2">
-                      <TrendingUp className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <TrendingUp className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Improving Error Rate</p>
                         <p className="text-sm text-muted-foreground">Great progress! Your recent tests show fewer errors.</p>
@@ -704,7 +704,7 @@ const Dashboard = () => {
                   )}
                   {recentTests.length < 5 && (
                     <li className="flex gap-2">
-                      <Zap className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <Zap className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Need More Data</p>
                         <p className="text-sm text-muted-foreground">Complete more tests to get detailed insights about your typing patterns.</p>
