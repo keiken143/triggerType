@@ -78,16 +78,16 @@ const TypingPage = () => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isTyping && timeLeft > 0) {
+    if (isTyping && selectedDuration > 0 && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0) {
+    } else if (selectedDuration > 0 && timeLeft === 0) {
       setIsTyping(false);
       setTestCompleted(true);
     }
     return () => clearInterval(interval);
-  }, [isTyping, timeLeft]);
+  }, [isTyping, timeLeft, selectedDuration]);
 
   const handleSubmitTest = async () => {
     if (!user) {
