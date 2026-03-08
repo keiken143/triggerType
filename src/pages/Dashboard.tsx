@@ -675,7 +675,7 @@ const Dashboard = () => {
                   )}
                   {recentTests.length > 5 && Math.abs(recentTests[0].accuracy - recentTests[recentTests.length - 1].accuracy) > 10 && (
                     <li className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Inconsistent Accuracy</p>
                         <p className="text-sm text-muted-foreground">Your accuracy fluctuates between tests. Practice at a comfortable pace first.</p>
