@@ -42,7 +42,7 @@ serve(async (req) => {
     const { data: recentTests, error: testsError } = await supabase
       .from('typing_tests')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(10);
 
