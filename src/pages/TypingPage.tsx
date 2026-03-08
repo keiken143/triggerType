@@ -380,43 +380,54 @@ const TypingPage = () => {
                     </div>
                   </div>
 
-                  {/* Code display */}
-                  <div className="p-6 min-h-[220px] flex items-center justify-center">
+                  {/* Code display - clickable for focus */}
+                  <div
+                    ref={codeDisplayRef}
+                    tabIndex={0}
+                    onKeyDown={handleCodeKeyDown}
+                    onPaste={(e) => e.preventDefault()}
+                    className={`p-6 min-h-[220px] max-h-[400px] overflow-y-auto outline-none cursor-text ${
+                      isTyping ? 'focus:ring-1 focus:ring-primary/30 focus:ring-inset' : ''
+                    }`}
+                    onClick={() => { if (isTyping) codeDisplayRef.current?.focus(); }}
+                  >
                     {isGenerating ? (
-                      <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
                         <Sparkles className="w-6 h-6 animate-pulse text-primary" />
                         <p className="text-sm">Generating code...</p>
                       </div>
                     ) : !currentText ? (
-                      <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
                         <Code className="w-6 h-6" />
                         <p className="text-sm">Select a language to generate code</p>
                       </div>
                     ) : (
                       <pre className="text-sm leading-[2] whitespace-pre-wrap w-full font-mono tracking-wide">
                         {currentText.split('').map((char, index) => (
-                          <span key={index} className={`${getCharacterClass(index)} transition-colors duration-100`}>{char}</span>
+                          <span key={index} className={`${getCharacterClass(index)} transition-colors duration-100 relative`}>
+                            {index === typedText.length && isTyping && (
+                              <span
+                                ref={cursorRef}
+                                className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary animate-pulse rounded-full"
+                                style={{ transform: 'translateX(-1px)' }}
+                              />
+                            )}
+                            {char}
+                          </span>
                         ))}
+                        {typedText.length === currentText.length && isTyping && (
+                          <span className="inline-block w-[2px] h-[1.2em] bg-primary animate-pulse rounded-full align-middle" />
+                        )}
                       </pre>
                     )}
                   </div>
 
-                  {/* Input */}
-                  <div className="px-5 pb-5">
-                    <textarea
-                      value={typedText}
-                      onChange={handleTextChange}
-                      onKeyDown={handleKeyDown}
-                      placeholder={isGenerating ? 'Generating...' : isTyping ? 'Type the code here...' : 'Click Start to begin'}
-                      disabled={!isTyping || isGenerating}
-                      onPaste={(e) => e.preventDefault()}
-                      onCut={(e) => e.preventDefault()}
-                      onCopy={(e) => e.preventDefault()}
-                      onDrop={(e) => e.preventDefault()}
-                      onDragOver={(e) => e.preventDefault()}
-                      className="w-full h-36 p-4 bg-surface/50 border border-border/30 rounded-xl resize-none focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm disabled:opacity-40 font-mono whitespace-pre leading-[2] tracking-wide transition-all"
-                    />
-                  </div>
+                  {/* Typing hint */}
+                  {isTyping && (
+                    <div className="px-5 pb-3 text-center">
+                      <p className="text-xs text-muted-foreground/60">Click the code area above and start typing</p>
+                    </div>
+                  )}
 
                   {/* Results */}
                   {testCompleted && !testSubmitted && (
