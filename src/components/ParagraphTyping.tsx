@@ -28,9 +28,17 @@ const paragraphs = [
   "Cooking is both an art and a science. The careful combination of ingredients, temperatures, and techniques can transform simple raw materials into extraordinary dishes. Great chefs understand that patience, creativity, and attention to detail are the foundations of culinary excellence.",
 ];
 
+const TIME_OPTIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "5 min", value: 300 },
+  { label: "10 min", value: 600 },
+];
+
 const ParagraphTyping = () => {
   const [isTyping, setIsTyping] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(120);
+  const [selectedDuration, setSelectedDuration] = useState(180);
+  const [timeLeft, setTimeLeft] = useState(180);
   const [currentText, setCurrentText] = useState("");
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
