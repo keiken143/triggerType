@@ -8,6 +8,7 @@ import {
   Play, Pause, Timer, Target, Zap, TrendingUp,
   Keyboard, Sparkles, Loader2, CheckCircle2,
 } from "lucide-react";
+import ReactiveKeyboard from "@/components/ReactiveKeyboard";
 
 const touchTypingLessons = [
   { name: "Home Row", keys: "asdf jkl;", words: ["sad", "lad", "flask", "jaffa", "salad", "falls", "ask", "all", "shall", "lass", "dads", "fads", "adds", "skald"] },
