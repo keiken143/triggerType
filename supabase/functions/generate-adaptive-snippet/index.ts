@@ -64,40 +64,39 @@ ${targetKeys ? `Heavily prioritize using variables, functions, or patterns conta
 Return ONLY the raw code line. ABSOLUTELY NO leading or trailing spaces. No backticks. No comments. No metadata.`;
         }
 
-        const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+        const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
 
         let snippet = "";
 
-        if (GEMINI_API_KEY) {
-            console.log(`Calling Gemini for ${language} with keys: ${targetKeys}`);
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        if (GROQ_API_KEY) {
+            console.log(`Calling Groq for ${language} with keys: ${targetKeys}`);
+            const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${GROQ_API_KEY}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `${systemMessage}\n\nSeed for variety: ${Math.random().toString(36).substring(7)}\nLanguage: ${language}\nFriction Keys: ${targetKeys}`
-                        }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.9,
-                        maxOutputTokens: 100,
-                    }
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
+                        { role: 'system', content: systemMessage },
+                        { role: 'user', content: `Seed for variety: ${Math.random().toString(36).substring(7)}\nLanguage: ${language}\nFriction Keys: ${targetKeys}` }
+                    ],
+                    temperature: 0.9,
+                    max_tokens: 100,
                 }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                snippet = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+                snippet = data.choices?.[0]?.message?.content?.trim() || "";
                 console.log(`Generated snippet: ${snippet}`);
             } else {
                 const errorText = await response.text();
-                console.error(`Gemini API Error (${response.status}): ${errorText}`);
+                console.error(`Groq API Error (${response.status}): ${errorText}`);
             }
         } else {
-            console.error("GEMINI_API_KEY not found in environment");
+            console.error("GROQ_API_KEY not found in environment");
         }
 
         // If AI fails or key is missing, return an error to trigger frontend fallback
