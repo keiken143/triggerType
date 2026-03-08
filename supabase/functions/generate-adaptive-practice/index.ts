@@ -81,7 +81,7 @@ serve(async (req) => {
     // Determine difficulty level based on performance
     let difficultyLevel: string;
     let difficultyDescription: string;
-
+    
     if (avgWpm < 40 || avgAccuracy < 85) {
       difficultyLevel = 'beginner';
       difficultyDescription = 'Building fundamentals';
@@ -110,23 +110,23 @@ ${problemKeys.length > 0 ? `IMPORTANT: Include words that naturally contain thes
 
 Generate exactly 150-200 words of practice text. Make it engaging, coherent, and appropriately challenging.`;
 
-    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
-    if (!GROQ_API_KEY) {
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Call Groq API to generate adaptive practice text
-    const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Call Lovable AI to generate adaptive practice text
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: 'Generate adaptive typing practice text now.' }
@@ -138,12 +138,19 @@ Generate exactly 150-200 words of practice text. Make it engaging, coherent, and
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Groq API error:', aiResponse.status, errorText);
-
+      console.error('AI API error:', aiResponse.status, errorText);
+      
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI service requires payment. Please add credits to your workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -154,7 +161,7 @@ Generate exactly 150-200 words of practice text. Make it engaging, coherent, and
     }
 
     const aiData = await aiResponse.json();
-    const generatedText = aiData.choices?.[0]?.message?.content;
+    const generatedText = aiData.choices[0].message.content;
 
     return new Response(
       JSON.stringify({

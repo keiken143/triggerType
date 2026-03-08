@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { VirtualKeyboard } from "@/components/ui/VirtualKeyboard";
-import AnimationContainer from "@/components/ui/AnimationContainer";
 import {
   Play,
   Pause,
@@ -19,8 +16,6 @@ import {
   Sparkles,
   Loader2,
 } from "lucide-react";
-import { StatInline } from "@/components/ui/StatInline";
-import { MinimalCard } from "@/components/ui/MinimalCard";
 
 const paragraphs = [
   "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet and has been used for typing practice for over a century. It remains one of the most popular pangrams in the English language.",
@@ -51,15 +46,12 @@ const ParagraphTyping = () => {
     return paragraphs[Math.floor(Math.random() * paragraphs.length)];
   }, []);
 
-  const [lastFetchFailed, setLastFetchFailed] = useState(false);
-
   useEffect(() => {
     setCurrentText(generateParagraph());
   }, [generateParagraph]);
 
   const generateAIText = async () => {
     setIsGenerating(true);
-    setLastFetchFailed(false);
     try {
       const { data, error } = await supabase.functions.invoke("generate-code", {
         body: {
@@ -67,11 +59,14 @@ const ParagraphTyping = () => {
           topic: "Generate a typing practice paragraph of 50-80 words. Use natural, flowing English prose on any interesting topic. No special characters or formatting — just plain text with proper punctuation and capitalization.",
         },
       });
-      if (error || !data?.code) throw new Error("Fetch failed");
-      setCurrentText(data.code.trim());
+      if (error) throw error;
+      if (data?.code) {
+        setCurrentText(data.code.trim());
+      } else {
+        throw new Error("No text generated");
+      }
     } catch {
-      setLastFetchFailed(true);
-      toast({ title: "AI Generation Offline", description: "Using built-in paragraph database.", variant: "default" });
+      toast({ title: "Generation failed", description: "Using preset paragraph instead.", variant: "destructive" });
       setCurrentText(generateParagraph());
     } finally {
       setIsGenerating(false);
@@ -150,8 +145,8 @@ const ParagraphTyping = () => {
 
   const getCharacterClass = (index: number) => {
     if (index >= typedText.length) return "text-muted-foreground";
-    if (typedText[index] === currentText[index]) return "text-foreground bg-primary/10 rounded-sm px-[1px]";
-    return "text-destructive bg-destructive/10 rounded-sm px-[1px]";
+    if (typedText[index] === currentText[index]) return "text-primary bg-primary/10";
+    return "text-destructive bg-destructive/10";
   };
 
   const progress = currentText.length > 0 ? (typedText.length / currentText.length) * 100 : 0;
@@ -159,79 +154,24 @@ const ParagraphTyping = () => {
   return (
     <div className="space-y-8">
       {/* Stats */}
-      <MinimalCard className="flex flex-col gap-6 p-6 px-8 bg-surface/50 border-border/30">
-        {/* Primary Metrics Layer */}
-        <div className="flex flex-wrap items-center justify-between gap-6">
-          <div className="flex items-center gap-8 sm:gap-14">
-            <StatInline
-              label="Efficiency"
-              value={wpm}
-              subValue={`${Math.max(0, wpm - 5)} avg`}
-              className="text-xl"
-            />
-            <StatInline
-              label="Precision"
-              value={accuracy}
-              subValue="%"
-              className="text-xl"
-            />
-            <StatInline
-              label="Focus"
-              value={timeLeft}
-              subValue="sec"
-              className="text-xl"
-            />
-            <StatInline
-              label="Score"
-              value={Math.round(wpm * (accuracy / 100) * 10)}
-              className="text-xl hidden md:flex"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            {!isTyping ? (
-              <Button onClick={handleStart} size="sm" className="rounded-full px-6"><Play className="w-4 h-4 mr-2" />Start</Button>
-            ) : (
-              <Button onClick={handlePause} variant="secondary" size="sm" className="rounded-full px-6"><Pause className="w-4 h-4 mr-2" />Pause</Button>
-            )}
-            <Button variant="ghost" size="sm" onClick={handleReset} className="h-9 w-9 p-0 rounded-full">
-              <RotateCcw className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Analytic Metadata Layer */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-border/20">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider">
-              <span>Calibration Progress</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-muted/20 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">Accuracy Streak</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <div key={s} className={`h-1.5 w-6 rounded-full transition-colors ${accuracy > 95 ? 'bg-green-500/50' : 'bg-muted/30'}`} />
-                ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { icon: Timer, label: "Time Left", value: `${timeLeft}s`, color: "text-primary", bg: "bg-primary/10" },
+          { icon: Zap, label: "WPM", value: wpm, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
+          { icon: Target, label: "Accuracy", value: `${accuracy}%`, color: "text-primary", bg: "bg-primary/10" },
+          { icon: TrendingUp, label: "Progress", value: `${Math.round(progress)}%`, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
+        ].map(({ icon: Icon, label, value, color, bg }) => (
+          <Card key={label} className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-4 flex items-center space-x-3">
+              <div className={`p-2 ${bg} rounded-lg`}><Icon className={`w-5 h-5 ${color}`} /></div>
+              <div>
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="text-xl font-bold">{value}</p>
               </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">Sync Status</span>
-              <span className="text-[11px] font-mono text-foreground/80 lowercase">{isTyping ? 'Synchronized' : 'Standby'}</span>
-            </div>
-          </div>
-        </div>
-      </MinimalCard>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Typing Area */}
       <Card className="bg-card/50 backdrop-blur-sm border-border/50">
@@ -264,35 +204,12 @@ const ParagraphTyping = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="relative border border-border/50 rounded-xl bg-surface/50 backdrop-blur-md overflow-hidden min-h-[200px] flex shadow-[inset_0_4px_30px_rgba(0,0,0,0.1)]">
-            {/* Index Column */}
-            <div className="w-12 bg-muted/20 border-r border-border/20 flex flex-col items-end pt-8 pr-3 gap-6 select-none text-[10px] font-mono text-muted-foreground/30 leading-none">
-              {[1, 2, 3, 4, 5].map(n => <div key={n}>{n.toString().padStart(2, '0')}</div>)}
-            </div>
-
-            <div className="flex-1 p-8 overflow-auto relative">
-              <p className="text-xl leading-[2] whitespace-pre-wrap w-full font-mono tracking-tight text-left relative z-10">
-                {currentText.split("").map((char, index) => (
-                  <span key={index} className="relative">
-                    {index === typedText.length && isTyping && (
-                      <motion.span
-                        layoutId="paragraph-caret"
-                        className="absolute left-0 top-[10%] bottom-[10%] w-[2px] bg-primary shadow-[0_0_10px_hsl(var(--primary))] rounded-full"
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
-                    <span className={`${getCharacterClass(index)} transition-all duration-150`}>
-                      {char}
-                    </span>
-                  </span>
-                ))}
-              </p>
-
-              {/* Background watermark for precision feel */}
-              <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none select-none">
-                <FileText className="w-32 h-32" />
-              </div>
-            </div>
+          <div className="p-6 bg-surface rounded-lg border border-border/50 overflow-auto min-h-[150px] flex items-center justify-center">
+            <p className="text-base leading-relaxed whitespace-pre-wrap w-full font-mono">
+              {currentText.split("").map((char, index) => (
+                <span key={index} className={`${getCharacterClass(index)} transition-all duration-150`}>{char === "\t" ? "    " : char}</span>
+              ))}
+            </p>
           </div>
           <textarea
             value={typedText}
@@ -317,11 +234,6 @@ const ParagraphTyping = () => {
             onCopy={(e) => e.preventDefault()}
             className="w-full h-32 p-4 bg-surface border border-border/50 rounded-lg resize-none focus:border-primary focus:outline-none text-sm disabled:opacity-50"
           />
-
-          {/* Real-time Feedback Engine */}
-          <AnimationContainer delay={0.2}>
-            <VirtualKeyboard keyErrors={keyErrors} />
-          </AnimationContainer>
 
 
           {testCompleted && !testSubmitted && (

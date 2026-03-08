@@ -1,19 +1,13 @@
 project_id = "hyingfjpzuswqivsxoam"
 
 [functions.analyze-typing-errors]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-code]
 verify_jwt = false
 
 [functions.analyze-performance]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-adaptive-practice]
 verify_jwt = true
-
-[functions.generate-curriculum]
-verify_jwt = false
-
-[functions.generate-adaptive-snippet]
-verify_jwt = false

@@ -50,12 +50,9 @@ const TouchTyping = () => {
     return words.join(" ");
   }, []);
 
-  const [lastFetchFailed, setLastFetchFailed] = useState(false);
-
   const generateAIText = async () => {
     const lesson = touchTypingLessons[selectedLesson];
     setIsGenerating(true);
-    setLastFetchFailed(false);
     try {
       const { data, error } = await supabase.functions.invoke("generate-code", {
         body: {
@@ -63,11 +60,14 @@ const TouchTyping = () => {
           topic: `Generate a typing practice paragraph using ONLY words that can be formed from these keys: ${lesson.keys}. The text should be 40-60 words long, lowercase, no punctuation except spaces. Focus on real English words using only those letters. Do NOT include any other characters.`,
         },
       });
-      if (error || !data?.code) throw new Error("Fetch failed");
-      setCurrentText(data.code.trim());
+      if (error) throw error;
+      if (data?.code) {
+        setCurrentText(data.code.trim());
+      } else {
+        throw new Error("No text generated");
+      }
     } catch {
-      setLastFetchFailed(true);
-      toast({ title: "AI Generation Offline", description: "Using built-in lesson vocabulary.", variant: "default" });
+      toast({ title: "Generation failed", description: "Using preset words instead.", variant: "destructive" });
       setCurrentText(generateLessonText(selectedLesson));
     } finally {
       setIsGenerating(false);
@@ -150,8 +150,8 @@ const TouchTyping = () => {
 
   const getCharacterClass = (index: number) => {
     if (index >= typedText.length) return "text-muted-foreground";
-    if (typedText[index] === currentText[index]) return "text-foreground bg-primary/10 rounded-sm px-[1px]";
-    return "text-destructive bg-destructive/10 rounded-sm px-[1px]";
+    if (typedText[index] === currentText[index]) return "text-primary bg-primary/10";
+    return "text-destructive bg-destructive/10";
   };
 
   const progress = currentText.length > 0 ? (typedText.length / currentText.length) * 100 : 0;

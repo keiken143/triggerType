@@ -1,8 +1,8 @@
-# TrigType - Project Documentation
+# TriggerType - Project Documentation
 
 ## Project Overview
 
-TrigType is a modern typing practice application designed for developers and professionals to improve their typing speed and accuracy with real code snippets from various programming languages.
+TriggerType is a modern typing practice application designed for developers and professionals to improve their typing speed and accuracy with real code snippets from various programming languages.
 
 ---
 

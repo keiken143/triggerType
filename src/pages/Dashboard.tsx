@@ -1,6 +1,8 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import Navbar from "@/components/Navbar";
 import KeyboardHeatmap from "@/components/KeyboardHeatmap";
 import { PerformanceOverTimeChart } from "@/components/charts/PerformanceOverTimeChart";
 import { ErrorAnalysisByKeyChart } from "@/components/charts/ErrorAnalysisByKeyChart";
@@ -8,17 +10,21 @@ import { PerformanceComparisonChart } from "@/components/charts/PerformanceCompa
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-import {
-  TrendingUp, Target, Zap, Clock, Calendar, Trophy,
-  Activity, Flame, Brain, AlertCircle, Award, Loader2, RotateCw
+import { 
+  TrendingUp, 
+  Target, 
+  Zap, 
+  Clock, 
+  Calendar,
+  Trophy,
+  Activity,
+  Flame,
+  Brain,
+  AlertCircle,
+  Award
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
-import { PageContainer, SectionHeader } from "@/components/layout/PageContainer";
-import { MinimalCard } from "@/components/ui/MinimalCard";
-import { StatInline } from "@/components/ui/StatInline";
-import { motion } from "framer-motion";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface TypingTest {
   id: string;
@@ -30,7 +36,6 @@ interface TypingTest {
   errors: number;
   correct_characters: number;
   character_count: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   key_errors?: any;
 }
 
@@ -63,27 +68,25 @@ const Dashboard = () => {
     }
   }, [user]);
 
-  // Handle auto-generation of AI reports
-  useEffect(() => {
-    if (recentTests.length > 0) {
-      // Refresh analysis whenever tests change to provide latest biometric insights
-      fetchAIAnalysis();
-      fetchPerformanceAnalysis();
-    }
-  }, [recentTests.length]); // Specifically track the volume of tests for refresh trigger
-
   const fetchTypingTests = async () => {
     if (!user) return;
+
     try {
+      // Fetch all tests for charts
       const { data: allTestsData, error: allTestsError } = await supabase
         .from('typing_tests')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (allTestsError) throw allTestsError;
+      if (allTestsError) {
+        console.error('Error fetching all typing tests:', allTestsError);
+        return;
+      }
+
       setAllTests(allTestsData || []);
 
+      // Get recent tests (top 10)
       const { data: tests, error } = await supabase
         .from('typing_tests')
         .select('*')
@@ -91,17 +94,24 @@ const Dashboard = () => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching typing tests:', error);
+        return;
+      }
 
+      // Remove duplicates based on key properties
       const uniqueTests = tests?.reduce((acc: TypingTest[], test) => {
-        const isDuplicate = acc.some(t =>
+        const isDuplicate = acc.some(t => 
           t.wpm === test.wpm &&
           t.accuracy === test.accuracy &&
           t.test_duration === test.test_duration &&
           t.language === test.language &&
-          Math.abs(new Date(t.created_at).getTime() - new Date(test.created_at).getTime()) < 60000
+          Math.abs(new Date(t.created_at).getTime() - new Date(test.created_at).getTime()) < 60000 // Within 1 minute
         );
-        if (!isDuplicate) acc.push(test);
+        
+        if (!isDuplicate) {
+          acc.push(test);
+        }
         return acc;
       }, []) || [];
 
@@ -116,56 +126,114 @@ const Dashboard = () => {
 
   const calculateStats = (tests: TypingTest[]) => {
     if (tests.length === 0) {
-      setStats({ avgWpm: 0, bestWpm: 0, accuracy: 0, testsCompleted: 0, streak: 0, weeklyPracticeMinutes: 0, totalErrors: 0, totalCharacters: 0, bestAccuracy: 0, avgAccuracy: 0 });
+      setStats({
+        avgWpm: 0,
+        bestWpm: 0,
+        accuracy: 0,
+        testsCompleted: 0,
+        streak: 0,
+        weeklyPracticeMinutes: 0,
+        totalErrors: 0,
+        totalCharacters: 0,
+        bestAccuracy: 0,
+        avgAccuracy: 0
+      });
       return;
     }
+
     const avgWpm = Math.round(tests.reduce((sum, test) => sum + test.wpm, 0) / tests.length);
     const bestWpm = Math.max(...tests.map(test => test.wpm));
     const avgAccuracy = Math.round(tests.reduce((sum, test) => sum + test.accuracy, 0) / tests.length);
     const bestAccuracy = Math.max(...tests.map(test => test.accuracy));
     const totalErrors = tests.reduce((sum, test) => sum + test.errors, 0);
     const totalCharacters = tests.reduce((sum, test) => sum + test.character_count, 0);
+    
+    // Calculate weekly practice time
     const weeklyPracticeMinutes = calculateWeeklyPractice(tests);
-
-    setStats({ avgWpm, bestWpm, accuracy: avgAccuracy, testsCompleted: tests.length, streak: calculateStreak(tests), weeklyPracticeMinutes, totalErrors, totalCharacters, bestAccuracy, avgAccuracy });
+    
+    setStats({
+      avgWpm,
+      bestWpm,
+      accuracy: avgAccuracy,
+      testsCompleted: tests.length,
+      streak: calculateStreak(tests),
+      weeklyPracticeMinutes,
+      totalErrors,
+      totalCharacters,
+      bestAccuracy,
+      avgAccuracy
+    });
   };
 
   const calculateStreak = (tests: TypingTest[]) => {
+    // Simple streak calculation - count consecutive days with tests
     const today = new Date();
     let streak = 0;
     const testDates = new Set(tests.map(test => new Date(test.created_at).toDateString()));
+    
     for (let i = 0; i < 30; i++) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() - i);
-      if (testDates.has(checkDate.toDateString())) streak++;
-      else if (i > 0) break;
+      
+      if (testDates.has(checkDate.toDateString())) {
+        streak++;
+      } else if (i > 0) {
+        break;
+      }
     }
+    
     return streak;
   };
 
   const calculateWeeklyPractice = (tests: TypingTest[]) => {
+    // Get start of current week (Monday)
     const today = new Date();
     const dayOfWeek = today.getDay();
-    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust when day is Sunday
     const weekStart = new Date(today.setDate(diff));
     weekStart.setHours(0, 0, 0, 0);
-    const weeklyTests = tests.filter(test => new Date(test.created_at) >= weekStart);
+    
+    // Filter tests from this week and sum their durations
+    const weeklyTests = tests.filter(test => {
+      const testDate = new Date(test.created_at);
+      return testDate >= weekStart;
+    });
+    
     const totalSeconds = weeklyTests.reduce((sum, test) => sum + test.test_duration, 0);
-    return Math.round(totalSeconds / 60);
+    return Math.round(totalSeconds / 60); // Convert to minutes
   };
 
   const fetchAIAnalysis = async () => {
     setAnalysisLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { toast.error("Please log in"); return; }
+      if (!session) {
+        toast.error("Please log in to view AI analysis");
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-typing-errors', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
+
       if (error) throw error;
-      if (data.error) { toast.error(data.error); return; }
+
+      if (data.error) {
+        if (data.error.includes('Rate limit')) {
+          toast.error("Rate limit exceeded. Please try again later.");
+        } else if (data.error.includes('payment')) {
+          toast.error("AI service requires payment. Please add credits.");
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+
       setAiAnalysis(data.analysis);
-    } catch (error: unknown) {
+    } catch (error: any) {
+      console.error('Error fetching AI analysis:', error);
       toast.error("Failed to generate AI analysis");
     } finally {
       setAnalysisLoading(false);
@@ -176,14 +244,33 @@ const Dashboard = () => {
     setPerformanceLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { toast.error("Please log in"); return; }
+      if (!session) {
+        toast.error("Please log in to view performance analysis");
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-performance', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
+
       if (error) throw error;
-      if (data.error) { toast.error(data.error); return; }
+
+      if (data.error) {
+        if (data.error.includes('Rate limit')) {
+          toast.error("Rate limit exceeded. Please try again later.");
+        } else if (data.error.includes('payment')) {
+          toast.error("AI service requires payment. Please add credits.");
+        } else {
+          toast.error(data.error);
+        }
+        return;
+      }
+
       setPerformanceAnalysis(data.analysis);
-    } catch (error: unknown) {
+    } catch (error: any) {
+      console.error('Error fetching performance analysis:', error);
       toast.error("Failed to generate performance analysis");
     } finally {
       setPerformanceLoading(false);
@@ -192,9 +279,17 @@ const Dashboard = () => {
 
   const setupRealtimeSubscription = () => {
     if (!user) return;
+
     const channel = supabase
       .channel('typing_tests_changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'typing_tests', filter: `user_id=eq.${user.id}` },
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'typing_tests',
+          filter: `user_id=eq.${user.id}`
+        },
         (payload) => {
           const newTest = payload.new as TypingTest;
           setRecentTests(prev => {
@@ -203,8 +298,12 @@ const Dashboard = () => {
             return updatedTests;
           });
         }
-      ).subscribe();
-    return () => { supabase.removeChannel(channel); };
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const formatDate = (dateString: string) => {
@@ -212,11 +311,15 @@ const Dashboard = () => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    if (date.toDateString() === today.toDateString()) return "Today";
-    else if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
-    else {
+
+    if (date.toDateString() === today.toDateString()) {
+      return "Today";
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return "Yesterday";
+    } else {
       const diffTime = Math.abs(today.getTime() - date.getTime());
-      return `${Math.ceil(diffTime / (1000 * 60 * 60 * 24))} days ago`;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `${diffDays} days ago`;
     }
   };
 
@@ -227,276 +330,440 @@ const Dashboard = () => {
     return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`;
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    show: { opacity: 1, scale: 1, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
-  };
+  const weakKeys = [
+    { key: "Q", accuracy: 78, frequency: 245 },
+    { key: "Z", accuracy: 82, frequency: 156 },
+    { key: "X", accuracy: 85, frequency: 189 },
+    { key: "P", accuracy: 87, frequency: 298 },
+  ];
 
   return (
-    <PageContainer className="py-8">
-      <SectionHeader
-        title="Performance Dashboard"
-        subtitle="Track your typing evolution and biometric patterns"
-        className="mb-8"
+    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
+      <div 
+        className="fixed inset-0 opacity-5"
+        style={{ backgroundImage: "var(--pattern-grid)" }}
       />
-
-      {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <MinimalCard key={i} className="p-5 h-[104px]">
-              <Skeleton className="w-12 h-4 rounded-md bg-muted mb-3" />
-              <Skeleton className="w-24 h-8 rounded-md bg-muted" />
-            </MinimalCard>
-          ))}
+      
+      <Navbar />
+      
+      <div className="container mx-auto px-6 pt-24 pb-12">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Progress Dashboard</h1>
+          <p className="text-muted-foreground">Track your typing evolution and biometric patterns</p>
         </div>
-      ) : (
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-        >
-          <motion.div variants={itemVariants}>
-            <MinimalCard animateHover className="p-5 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-neutral-400">
-                <Zap className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Avg Speed</span>
+
+        {/* Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Average WPM</p>
+                  <p className="text-2xl font-bold">{stats.avgWpm}</p>
+                </div>
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Zap className="w-6 h-6 text-primary" />
+                </div>
               </div>
-              <StatInline label="" value={stats.avgWpm} subValue="WPM" />
-            </MinimalCard>
-          </motion.div>
+            </CardContent>
+          </Card>
 
-          <motion.div variants={itemVariants}>
-            <MinimalCard animateHover className="p-5 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-neutral-400">
-                <Trophy className="w-4 h-4 text-purple-400" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Top Speed</span>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Best WPM</p>
+                  <p className="text-2xl font-bold">{stats.bestWpm}</p>
+                </div>
+                <div className="p-3 bg-secondary-glow/10 rounded-lg">
+                  <Trophy className="w-6 h-6 text-secondary-glow" />
+                </div>
               </div>
-              <StatInline label="" value={stats.bestWpm} subValue="WPM" />
-            </MinimalCard>
-          </motion.div>
+            </CardContent>
+          </Card>
 
-          <motion.div variants={itemVariants}>
-            <MinimalCard animateHover className="p-5 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-neutral-400">
-                <Target className="w-4 h-4 text-green-400" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Accuracy</span>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Accuracy</p>
+                  <p className="text-2xl font-bold">{stats.accuracy}%</p>
+                </div>
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Target className="w-6 h-6 text-primary" />
+                </div>
               </div>
-              <StatInline label="" value={`${stats.accuracy}%`} />
-            </MinimalCard>
-          </motion.div>
+            </CardContent>
+          </Card>
 
-          <motion.div variants={itemVariants}>
-            <MinimalCard animateHover className="p-5 flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-neutral-400">
-                <Flame className="w-4 h-4 text-orange-400" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Streak</span>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Streak</p>
+                  <p className="text-2xl font-bold">{stats.streak} days</p>
+                </div>
+                <div className="p-3 bg-secondary-glow/10 rounded-lg">
+                  <Flame className="w-6 h-6 text-secondary-glow" />
+                </div>
               </div>
-              <StatInline label="" value={stats.streak} subValue="Days" />
-            </MinimalCard>
-          </motion.div>
-        </motion.div>
-      )}
+            </CardContent>
+          </Card>
+        </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full max-w-sm grid-cols-2 bg-muted/60 p-1 border border-border/50 rounded-full mb-6">
-          <TabsTrigger value="overview" className="rounded-full data-[state=active]:bg-primary/10 data-[state=active]:text-foreground text-muted-foreground">Overview</TabsTrigger>
-          <TabsTrigger value="analysis" className="rounded-full data-[state=active]:bg-primary/10 data-[state=active]:text-foreground text-muted-foreground">Analysis</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 bg-surface/50 backdrop-blur-sm p-1">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analysis"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-300"
+            >
+              Analysis
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="space-y-6">
-            <MinimalCard className="p-4"><PerformanceOverTimeChart tests={allTests} /></MinimalCard>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <MinimalCard className="p-4"><ErrorAnalysisByKeyChart tests={allTests} /></MinimalCard>
-              <MinimalCard className="p-4"><PerformanceComparisonChart tests={allTests} /></MinimalCard>
+          <TabsContent value="overview" className="space-y-6">
+            {/* Performance Charts */}
+            <div className="space-y-6">
+              <PerformanceOverTimeChart tests={allTests} />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <ErrorAnalysisByKeyChart tests={allTests} />
+                <PerformanceComparisonChart tests={allTests} />
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <MinimalCard className="p-6 bg-card/40 border-border/40 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-semibold text-foreground">Recent Tests</h3>
-              </div>
-              {loading ? (
-                <div className="space-y-3">
-                  {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full bg-muted/40 rounded-lg" />)}
-                </div>
-              ) : recentTests.length > 0 ? (
-                <div className="space-y-3">
-                  {recentTests.map((test) => (
-                    <div key={test.id} className="flex items-center justify-between p-3 bg-muted/30 border border-border/40 rounded-lg transition-colors hover:bg-muted/50 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground">{formatDate(test.created_at)}</span>
-                        <span className="text-xs text-foreground bg-muted/60 px-2 py-0.5 rounded-full">{test.language}</span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-foreground font-mono font-medium">{test.wpm} WPM</span>
-                        <span className="text-muted-foreground font-mono">{Math.round(test.accuracy)}%</span>
-                      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Tests */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Activity className="w-5 h-5" />
+                    <span>Recent Tests</span>
+                  </CardTitle>
+                  <CardDescription>Your latest typing test results</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="space-y-4">
+                      {[...Array(4)].map((_, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-surface rounded-lg animate-pulse">
+                          <div className="h-4 bg-muted rounded w-20"></div>
+                          <div className="flex space-x-4">
+                            <div className="h-4 bg-muted rounded w-16"></div>
+                            <div className="h-4 bg-muted rounded w-12"></div>
+                            <div className="h-4 bg-muted rounded w-12"></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-sm">No recent typing tests.</p>
-              )}
-            </MinimalCard>
+                  ) : recentTests.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentTests.map((test) => (
+                        <div key={test.id} className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm">{formatDate(test.created_at)}</span>
+                            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                              {test.language}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <span className="text-primary font-medium">{test.wpm} WPM</span>
+                            <span className="text-muted-foreground">{Math.round(test.accuracy)}%</span>
+                            <span className="text-muted-foreground">{formatDuration(test.test_duration)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No typing tests completed yet.</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Complete a typing test to see your results here!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            <MinimalCard className="p-6 bg-card/40 border-border/40 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-semibold text-foreground">Weekly Goals</h3>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between text-sm mb-2 text-muted-foreground">
-                    <span>Speed Goal (100 WPM)</span>
-                    <span className="text-foreground">{stats.avgWpm}/100</span>
-                  </div>
-                  <Progress value={(stats.avgWpm / 100) * 100} className="h-2 bg-muted/50" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2 text-muted-foreground">
-                    <span>Accuracy (100%)</span>
-                    <span className="text-foreground">{stats.accuracy}%</span>
-                  </div>
-                  <Progress value={(stats.accuracy / 100) * 100} className="h-2 bg-muted/50" />
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2 text-muted-foreground">
-                    <span>Practice (180 min)</span>
-                    <span className="text-foreground">{stats.weeklyPracticeMinutes}/180</span>
-                  </div>
-                  <Progress value={(stats.weeklyPracticeMinutes / 180) * 100} className="h-2 bg-muted/50" />
-                </div>
-              </div>
-            </MinimalCard>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="analysis" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <MinimalCard className="p-6 relative overflow-hidden min-h-[400px] bg-card/40 border-border/40 shadow-sm">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500/50 via-purple-500 to-transparent" />
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <Brain className="w-5 h-5 text-purple-400" />
-                  </div>
+              {/* Learning Goals */}
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <span>Weekly Goals</span>
+                  </CardTitle>
+                  <CardDescription>Track your weekly typing goals</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div>
-                    <h3 className="font-bold text-foreground tracking-tight text-sm">Neural Error Analysis</h3>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Real-time Biometric Audit</p>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Speed Goal (100 WPM)</span>
+                      <span>{stats.avgWpm}/100</span>
+                    </div>
+                    <Progress value={(stats.avgWpm / 100) * 100} className="h-2" />
                   </div>
-                </div>
-                {aiAnalysis && !analysisLoading && (
-                  <Button variant="ghost" size="icon" onClick={fetchAIAnalysis} className="h-8 w-8 text-muted-foreground hover:text-primary">
-                    <RotateCw className="w-3.5 h-3.5" />
+                  
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Accuracy Goal (100%)</span>
+                      <span>{stats.accuracy}/100</span>
+                    </div>
+                    <Progress value={(stats.accuracy / 100) * 100} className="h-2" />
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Weekly Practice (180 min)</span>
+                      <span>{stats.weeklyPracticeMinutes}/180 min</span>
+                    </div>
+                    <Progress value={(stats.weeklyPracticeMinutes / 180) * 100} className="h-2" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+
+          <TabsContent value="analysis" className="space-y-6">
+            {/* AI Error Analysis */}
+            <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-500" />
+                  AI Error Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {!aiAnalysis && !analysisLoading && (
+                  <Button 
+                    onClick={fetchAIAnalysis}
+                    className="w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25 active:scale-95 active:shadow-none active:brightness-90"
+                    disabled={recentTests.length === 0}
+                  >
+                    <Brain className="h-4 w-4 mr-2" />
+                    Generate AI Analysis
                   </Button>
                 )}
-              </div>
+                
+                {analysisLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                )}
 
-              {analysisLoading ? (
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-[90%] bg-muted/40" />
-                  <Skeleton className="h-4 w-[75%] bg-muted/40" />
-                  <Skeleton className="h-4 w-[85%] bg-muted/40" />
-                  <Skeleton className="h-4 w-[60%] bg-muted/40" />
-                </div>
-              ) : recentTests.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="w-8 h-8 text-muted-foreground/20 mb-3" />
-                  <p className="text-xs text-muted-foreground max-w-[200px]">Complete a test to unlock neural error analysis.</p>
-                </div>
-              ) : (
-                <div className="prose prose-sm dark:prose-invert max-w-none scrollbar-hide overflow-y-auto max-h-[500px] pr-2">
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p className="text-[11px] leading-relaxed text-muted-foreground font-medium mb-4">{children}</p>,
-                      li: ({ children }) => <li className="text-[11px] leading-relaxed text-foreground font-medium mb-2">{children}</li>,
-                      ul: ({ children }) => <ul className="list-disc space-y-2 mb-6 pl-5 marker:text-primary">{children}</ul>,
-                      h3: ({ children }) => <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 mt-8 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        {children}
-                      </h4>,
-                      h2: ({ children }) => <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 mt-8 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        {children}
-                      </h4>,
-                      h1: () => null,
-                    }}
+                {aiAnalysis && (
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{aiAnalysis}</ReactMarkdown>
+                    <Button 
+                      onClick={fetchAIAnalysis}
+                      variant="outline"
+                      className="mt-4 transition-transform active:scale-95 hover:scale-105"
+                    >
+                      Regenerate Analysis
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* AI Performance Analysis */}
+            <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-500" />
+                  AI Performance Analysis & Tailored Suggestions
+                </CardTitle>
+                <CardDescription>Get personalized recommendations based on your typing data</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!performanceAnalysis && !performanceLoading && (
+                  <Button 
+                    onClick={fetchPerformanceAnalysis}
+                    className="w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/25 active:scale-95 active:shadow-none active:brightness-90"
+                    disabled={recentTests.length === 0}
                   >
-                    {aiAnalysis}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </MinimalCard>
-
-            <MinimalCard className="p-8 relative overflow-hidden min-h-[450px] bg-card/40 border-border/40 shadow-sm">
-              <div className="absolute inset-0 bg-background/50 pointer-events-none" />
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500/30 via-blue-500/50 to-transparent" />
-              <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                    <TrendingUp className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-foreground tracking-widest text-[11px] uppercase">Performance Strategy</h3>
-                    <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black">Architectural Optimization</p>
-                  </div>
-                </div>
-                {performanceAnalysis && !performanceLoading && (
-                  <Button variant="ghost" size="icon" onClick={fetchPerformanceAnalysis} className="h-8 w-8 text-muted-foreground hover:text-blue-400 hover:bg-blue-400/10 rounded-lg">
-                    <RotateCw className="w-3.5 h-3.5" />
+                    <TrendingUp className="h-4 w-4 mr-2" />
+                    Generate Performance Analysis
                   </Button>
                 )}
-              </div>
+                
+                {performanceLoading && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                )}
 
-              {performanceLoading ? (
-                <div className="space-y-4 relative z-10">
-                  <Skeleton className="h-3 w-[90%] bg-muted/40" />
-                  <Skeleton className="h-3 w-[75%] bg-muted/40" />
-                  <Skeleton className="h-3 w-[85%] bg-muted/40" />
-                  <Skeleton className="h-3 w-[60%] bg-muted/40" />
+                {performanceAnalysis && (
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{performanceAnalysis}</ReactMarkdown>
+                    <Button 
+                      onClick={fetchPerformanceAnalysis}
+                      variant="outline"
+                      className="mt-4 transition-transform active:scale-95 hover:scale-105"
+                    >
+                      Regenerate Analysis
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Keyboard Heatmap */}
+            <KeyboardHeatmap />
+
+            {/* Error Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-orange-500" />
+                  Error Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Total Errors</p>
+                    <p className="text-2xl font-bold">{stats.totalErrors}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Error Rate</p>
+                    <p className="text-2xl font-bold">{((stats.totalErrors / stats.totalCharacters) * 100).toFixed(1)}%</p>
+                  </div>
                 </div>
-              ) : recentTests.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center relative z-10">
-                  <AlertCircle className="w-10 h-10 text-muted-foreground/40 mb-4" />
-                  <p className="text-[10px] uppercase font-black tracking-widest text-muted-foreground max-w-[200px]">Strategic insights will unlock after your first performance upload.</p>
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Accuracy Patterns</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {stats.bestAccuracy > 95 ? 
+                      "You're capable of very high accuracy. Focus on maintaining this in all tests." :
+                      "Practice focusing on accuracy first, then gradually increase speed."}
+                  </p>
                 </div>
-              ) : (
-                <div className="prose prose-sm dark:prose-invert max-w-none relative z-10 scrollbar-hide overflow-y-auto max-h-[500px] pr-2">
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <p className="text-[11px] leading-relaxed text-muted-foreground font-medium mb-4">{children}</p>,
-                      li: ({ children }) => <li className="text-[11px] leading-relaxed text-foreground font-medium mb-2">{children}</li>,
-                      ul: ({ children }) => <ul className="list-disc space-y-2 mb-6 pl-5 marker:text-blue-500">{children}</ul>,
-                      strong: ({ children }) => <strong className="text-blue-400 font-black uppercase tracking-tight">{children}</strong>,
-                      h3: ({ children }) => <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-4 mt-8 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                        {children}
-                      </h4>,
-                      h2: ({ children }) => <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-4 mt-8 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                        {children}
-                      </h4>,
-                      h1: () => null,
-                    }}
-                  >
-                    {performanceAnalysis}
-                  </ReactMarkdown>
+              </CardContent>
+            </Card>
+
+            {/* Common Mistakes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Common Mistakes Identified</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {recentTests.length > 3 && stats.avgWpm > stats.bestWpm * 0.7 && (
+                    <li className="flex gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Rushing Through Tests</p>
+                        <p className="text-sm text-muted-foreground">Your speed varies significantly. Focus on maintaining consistent pace.</p>
+                      </div>
+                    </li>
+                  )}
+                  {recentTests.length > 5 && Math.abs(recentTests[0].accuracy - recentTests[recentTests.length - 1].accuracy) > 10 && (
+                    <li className="flex gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Inconsistent Accuracy</p>
+                        <p className="text-sm text-muted-foreground">Your accuracy fluctuates between tests. Practice at a comfortable pace first.</p>
+                      </div>
+                    </li>
+                  )}
+                  {stats.avgAccuracy < 85 && (
+                    <li className="flex gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Low Overall Accuracy</p>
+                        <p className="text-sm text-muted-foreground">Slow down and focus on hitting the right keys. Speed will come with practice.</p>
+                      </div>
+                    </li>
+                  )}
+                  {recentTests.length > 3 && 
+                   recentTests.slice(0, 3).reduce((sum, t) => sum + t.errors, 0) > 
+                   recentTests.slice(-3).reduce((sum, t) => sum + t.errors, 0) && (
+                    <li className="flex gap-2">
+                      <TrendingUp className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Improving Error Rate</p>
+                        <p className="text-sm text-muted-foreground">Great progress! Your recent tests show fewer errors.</p>
+                      </div>
+                    </li>
+                  )}
+                  {recentTests.length < 5 && (
+                    <li className="flex gap-2">
+                      <Zap className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Need More Data</p>
+                        <p className="text-sm text-muted-foreground">Complete more tests to get detailed insights about your typing patterns.</p>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Solutions & Practice Tips */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Solutions & Practice Tips</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      For Better Accuracy
+                    </h3>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
+                      <li>Start with slower, deliberate typing to build muscle memory</li>
+                      <li>Focus on one word at a time instead of rushing ahead</li>
+                      <li>Practice difficult letter combinations separately</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-primary" />
+                      For Increased Speed
+                    </h3>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
+                      <li>Maintain consistent practice schedule (15-20 mins daily)</li>
+                      <li>Gradually increase difficulty once you maintain 95%+ accuracy</li>
+                      <li>Use proper finger positioning on home row</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      For Consistency
+                    </h3>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
+                      <li>Warm up with easy texts before challenging yourself</li>
+                      <li>Take breaks between tests to avoid fatigue errors</li>
+                      <li>Track your progress and celebrate small improvements</li>
+                    </ul>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <Award className="h-4 w-4 text-primary" />
+                      For Excellence
+                    </h3>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-6 list-disc">
+                      <li>Learn to touch type without looking at the keyboard</li>
+                      <li>Practice with varied text types (code, prose, numbers)</li>
+                      <li>Set specific goals (e.g., 60 WPM at 95% accuracy)</li>
+                    </ul>
+                  </div>
                 </div>
-              )}
-            </MinimalCard>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </PageContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
   );
 };
 

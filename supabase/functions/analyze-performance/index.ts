@@ -43,7 +43,7 @@ serve(async (req) => {
 
     if (!tests || tests.length === 0) {
       return new Response(
-        JSON.stringify({
+        JSON.stringify({ 
           analysis: "Complete some typing tests first to receive personalized performance analysis and tailored practice suggestions!",
           hasData: false
         }),
@@ -84,66 +84,112 @@ serve(async (req) => {
     const daysSinceFirst = Math.ceil((Date.now() - testDates[testDates.length - 1].getTime()) / (1000 * 60 * 60 * 24));
     const testsPerDay = totalTests / Math.max(daysSinceFirst, 1);
 
-    // Call Groq for personalized analysis
-    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
-    if (!GROQ_API_KEY) {
-      throw new Error('GROQ_API_KEY is not configured');
+    // Call Lovable AI for personalized analysis
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are a world-class typing coach. Analyze performance data and provide EXTREMELY CONCISE, ACTIONABLE insights.
-RULES:
-1. USE ONLY SMALL BULLET POINTS (max 10 words per point).
-2. NO LONG PARAGRAPHS.
-3. BE BLUNT AND ARCHITECTURAL.
-4. USE MARKDOWN BULLETS (-).
-5. STRUCTURE: ## Assessment, ## Strengths, ## Weaknesses, ## Strategy.`;
+    const prompt = `As an expert typing coach, analyze this user's comprehensive performance data and provide highly personalized, actionable insights:
 
-    const improvementCount = olderTests.length > 0 ? ((recentWpm - olderWpm) / olderWpm * 100).toFixed(1) : "0.0";
+**Overall Statistics:**
+- Total Tests Completed: ${totalTests}
+- Average WPM: ${avgWpm.toFixed(1)} (Best: ${bestWpm}, Worst: ${worstWpm})
+- Average Accuracy: ${avgAccuracy.toFixed(1)}% (Best: ${bestAccuracy.toFixed(1)}%, Worst: ${worstAccuracy.toFixed(1)}%)
+- Overall Error Rate: ${errorRate}%
+- WPM Variance: ${wpmVariance.toFixed(1)} (consistency indicator)
+- Accuracy Variance: ${accuracyVariance.toFixed(1)}%
 
-    // Prepare the prompt data
-    const prompt = `
-    - Total Tests: ${totalTests}
-    - Historical Avg WPM: ${avgWpm.toFixed(1)}
-    - Recent Avg WPM (last 5): ${recentWpm.toFixed(1)}
-    - Best WPM: ${bestWpm}
-    - Worst WPM: ${worstWpm}
-    - Historical Avg Accuracy: ${avgAccuracy.toFixed(1)}%
-    - Recent Avg Accuracy: ${recentAccuracy.toFixed(1)}%
-    - Error Rate: ${errorRate}%
-    - Languages Practiced: ${languages.join(', ')}
-    - Consistency (WPM/Acc Variance): ${wpmVariance.toFixed(1)}/${accuracyVariance.toFixed(1)}
-    - Tests Per Day: ${testsPerDay.toFixed(2)}
-    - Improvement Trend: ${improvementCount}%
-    `;
+**Progress Trends:**
+- Recent Performance (last 5 tests): ${recentWpm.toFixed(1)} WPM at ${recentAccuracy.toFixed(1)}% accuracy
+${olderTests.length > 0 ? `- Historical Average: ${olderWpm.toFixed(1)} WPM at ${olderAccuracy.toFixed(1)}% accuracy` : '- Not enough historical data'}
+- Improvement Rate: ${olderTests.length > 0 ? `${((recentWpm - olderWpm) / olderWpm * 100).toFixed(1)}% WPM change, ${((recentAccuracy - olderAccuracy) / olderAccuracy * 100).toFixed(1)}% accuracy change` : 'Building baseline'}
 
-    const aiResponse = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
+**Practice Patterns:**
+- Days Active: ${daysSinceFirst}
+- Tests Per Day: ${testsPerDay.toFixed(2)}
+- Languages Practiced: ${languages.join(', ')}
+- Average Test Duration: ${avgDuration.toFixed(0)} seconds
+
+**Recent Test Details:**
+${tests.slice(0, 8).map((t, i) => `${i + 1}. ${t.wpm} WPM, ${Number(t.accuracy).toFixed(1)}% accuracy, ${t.errors} errors, ${t.test_duration}s (${t.language})`).join('\n')}
+
+Provide a comprehensive performance analysis with:
+
+## 1. Performance Assessment
+- Overall skill level evaluation (beginner/intermediate/advanced)
+- Strongest areas and weakest areas
+- Current trajectory (improving/plateauing/regressing)
+
+## 2. Personalized Strengths & Weaknesses
+- Identify 3 specific strengths with examples from their data
+- Pinpoint 3-4 critical weaknesses that need attention
+- Explain how these affect overall performance
+
+## 3. Tailored Practice Recommendations
+Based on their specific performance profile, provide:
+- **Daily Practice Routine**: Specific exercises for their level (10-15 mins)
+- **Weekly Focus Areas**: What to prioritize this week
+- **Targeted Drills**: Specific exercises for their weaknesses
+- **Progression Milestones**: Clear next goals to achieve
+
+## 4. Custom Improvement Strategy
+Create a personalized 4-week plan:
+- Week 1-2 goals and focus areas
+- Week 3-4 goals and advanced techniques
+- Success metrics to track
+
+## 5. Motivation & Insights
+- Celebrate specific improvements from their data
+- Realistic timeline for next achievement
+- Encouraging words based on their actual progress
+
+Be highly specific, reference their actual numbers, and make recommendations that directly address their unique situation. Format in clear markdown.`;
+
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `DATA:\n${prompt}` }
+          {
+            role: 'system',
+            content: 'You are a world-class typing coach with expertise in skill development and personalized training. Provide detailed, encouraging, and actionable guidance tailored to each individual user\'s performance data and goals.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
         ],
-        temperature: 0.7,
-        max_tokens: 500,
       }),
     });
 
     if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (aiResponse.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'AI service requires payment. Please add credits to your workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       const errorText = await aiResponse.text();
-      console.error('Groq error:', aiResponse.status, errorText);
-      throw new Error('Groq analysis failed');
+      console.error('AI gateway error:', aiResponse.status, errorText);
+      throw new Error('AI performance analysis failed');
     }
 
     const aiData = await aiResponse.json();
-    const analysis = aiData.choices?.[0]?.message?.content || "Analysis unavailable.";
+    const analysis = aiData.choices[0].message.content;
 
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         analysis,
         hasData: true,
         stats: {
@@ -151,7 +197,7 @@ RULES:
           avgWpm: avgWpm.toFixed(1),
           bestWpm,
           avgAccuracy: avgAccuracy.toFixed(1),
-          improvement: improvementCount
+          improvement: olderTests.length > 0 ? ((recentWpm - olderWpm) / olderWpm * 100).toFixed(1) : null
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

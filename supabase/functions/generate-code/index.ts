@@ -20,9 +20,9 @@ serve(async (req) => {
       );
     }
 
-    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
-    if (!GROQ_API_KEY) {
-      console.error('GROQ_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY is not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -30,25 +30,25 @@ serve(async (req) => {
     }
 
     const isSimpleText = language === 'simple';
-
+    
     const systemMessage = isSimpleText
-      ? 'Generate ONLY plain text paragraphs. No formatting, no explanations. 8-12 sentences, 2-3 paragraphs. Only output the raw lowercase string.'
+      ? 'Generate ONLY plain text paragraphs. No formatting, no explanations. 8-12 sentences, 2-3 paragraphs.'
       : `Generate ONLY ${language} code. No markdown, no backticks, no explanations. No comments of any kind - no single-line comments, no multi-line comments, no inline comments, no docstrings, no documentation strings. Only pure executable code. 10-15 lines. Code must be syntactically correct and ready to type.`;
-
+    
     const userPrompt = isSimpleText
       ? (topic ? `Topic: ${topic}` : 'Random interesting topic')
       : (topic ? `${language} code: ${topic}` : `${language} code snippet`);
 
     console.log('Generating content for:', language, topic || 'default');
 
-    const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemMessage },
           { role: 'user', content: userPrompt }
@@ -60,7 +60,22 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Groq AI error:', response.status, errorText);
+      console.error('Lovable AI error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
         JSON.stringify({ error: 'Failed to generate code' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -68,10 +83,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    let generatedCode = data.choices?.[0]?.message?.content || '';
-
-    // Fallback cleanup of stray backticks that LLMs try to put in despite rules
-    generatedCode = generatedCode.replace(/```[a-z]*\n/gi, '').replace(/```/g, '');
+    const generatedCode = data.choices[0]?.message?.content || '';
 
     console.log('Generated code successfully');
 

@@ -4,14 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
-import { AuthError } from '@supabase/supabase-js';
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: AuthError | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -46,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, displayName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -57,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     });
-
+    
     if (error) {
       toast({
         title: "Sign up failed",
@@ -70,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "We've sent you a confirmation link to complete your registration.",
       });
     }
-
+    
     return { error };
   };
 
@@ -79,15 +77,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password
     });
-
+    
     if (error) {
       toast({
-        title: "Sign in failed",
+        title: "Sign in failed", 
         description: error.message,
         variant: "destructive"
       });
     }
-
+    
     return { error };
   };
 
@@ -104,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{
       user,
-      session,
+      session, 
       loading,
       signUp,
       signIn,
