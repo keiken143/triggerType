@@ -210,7 +210,7 @@ const TypingPage = () => {
       setTypedText(newText);
       setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = start + 1; }, 0);
       const wordsTyped = newText.split(' ').length;
-      const timeElapsed = selectedDuration > 0 ? (selectedDuration - timeLeft) / 60 : (Date.now() - startTimeRef) / 60000;
+      const timeElapsed = selectedDuration > 0 ? (selectedDuration - timeLeft) / 60 : (Date.now() - startTimeRef.current) / 60000;
       setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
       let correct = 0;
       for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
