@@ -185,6 +185,7 @@ const TypingPage = () => {
       if (!session) { toast({ title: "Authentication Required", description: "Please log in.", variant: "destructive" }); return; }
       const { data, error } = await supabase.functions.invoke('generate-adaptive-practice', {
         headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { language: selectedLanguage },
       });
       if (error) throw error;
       if (data.error) {
