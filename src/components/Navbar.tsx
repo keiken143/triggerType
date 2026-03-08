@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Code, BarChart3, Users, Fingerprint, User, Menu, Keyboard } from "lucide-react";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
@@ -87,6 +88,7 @@ export const Navbar = () => {
 
         {/* Desktop User Section */}
         <div className="hidden md:flex items-center space-x-3">
+          <ThemeSwitcher />
           {user ? (
             <div className="flex items-center space-x-3">
               <Link to="/profile" className="flex items-center space-x-2">
@@ -127,6 +129,7 @@ export const Navbar = () => {
 
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center space-x-2">
+          <ThemeSwitcher />
           {user && (
             <Link to="/profile">
               <Avatar className="w-8 h-8 ring-2 ring-primary/20">
