@@ -21,24 +21,28 @@ serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const { data, error: claimsError } = await supabase.auth.getClaims(token);
 
-    if (userError || !user) {
+    if (claimsError || !data?.claims) {
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const userId = data.claims.sub;
+
     // Fetch recent typing tests to analyze performance
     const { data: recentTests, error: testsError } = await supabase
       .from('typing_tests')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(10);
 
