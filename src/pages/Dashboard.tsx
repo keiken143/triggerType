@@ -542,10 +542,10 @@ const Dashboard = () => {
 
           <TabsContent value="analysis" className="space-y-6">
             {/* AI Error Analysis */}
-            <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/20">
+            <Card className="bg-gradient-to-br from-secondary-glow/10 to-primary/10 border-secondary-glow/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-purple-500" />
+                  <Brain className="h-5 w-5 text-secondary-glow" />
                   AI Error Analysis
                 </CardTitle>
               </CardHeader>
