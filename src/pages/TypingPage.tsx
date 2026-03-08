@@ -96,7 +96,7 @@ const TypingPage = () => {
       return;
     }
     try {
-      const testDuration = selectedDuration > 0 ? selectedDuration - timeLeft : Math.round((Date.now() - startTimeRef) / 1000);
+      const testDuration = selectedDuration > 0 ? selectedDuration - timeLeft : Math.round((Date.now() - startTimeRef.current) / 1000);
       const characterCount = typedText.length;
       const correctCharacters = Math.round((accuracy / 100) * characterCount);
       const errors = characterCount - correctCharacters;
