@@ -160,7 +160,7 @@ const Profile = () => {
         updateResult = await supabase.from('profiles').update({ avatar_url: avatarUrl }).eq('user_id', user.id);
       } else {
         updateResult = await supabase.from('profiles').insert({
-          user_id: user.id, avatar_url: publicUrl, display_name: profile?.display_name, username: profile?.username
+          user_id: user.id, avatar_url: avatarUrl, display_name: profile?.display_name, username: profile?.username
         });
       }
       if (updateResult.error) throw updateResult.error;
