@@ -28,9 +28,17 @@ const paragraphs = [
   "Cooking is both an art and a science. The careful combination of ingredients, temperatures, and techniques can transform simple raw materials into extraordinary dishes. Great chefs understand that patience, creativity, and attention to detail are the foundations of culinary excellence.",
 ];
 
+const TIME_OPTIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "5 min", value: 300 },
+  { label: "10 min", value: 600 },
+];
+
 const ParagraphTyping = () => {
   const [isTyping, setIsTyping] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(120);
+  const [selectedDuration, setSelectedDuration] = useState(180);
+  const [timeLeft, setTimeLeft] = useState(180);
   const [currentText, setCurrentText] = useState("");
   const [typedText, setTypedText] = useState("");
   const [wpm, setWpm] = useState(0);
@@ -88,7 +96,7 @@ const ParagraphTyping = () => {
   const handlePause = () => setIsTyping(false);
   const handleReset = () => {
     setIsTyping(false);
-    setTimeLeft(120);
+    setTimeLeft(selectedDuration);
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
@@ -104,7 +112,7 @@ const ParagraphTyping = () => {
       return;
     }
     try {
-      const testDuration = 120 - timeLeft;
+      const testDuration = selectedDuration - timeLeft;
       const characterCount = typedText.length;
       const correctCharacters = Math.round((accuracy / 100) * characterCount);
       const errors = characterCount - correctCharacters;
@@ -136,7 +144,7 @@ const ParagraphTyping = () => {
     }
     setTypedText(newText);
     const wordsTyped = newText.split(" ").length;
-    const timeElapsed = (120 - timeLeft) / 60;
+    const timeElapsed = (selectedDuration - timeLeft) / 60;
     setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
     let correct = 0;
     for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
@@ -156,7 +164,7 @@ const ParagraphTyping = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: Timer, label: "Time Left", value: `${timeLeft}s`, color: "text-primary", bg: "bg-primary/10" },
+          { icon: Timer, label: "Time Left", value: `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`, color: "text-primary", bg: "bg-primary/10" },
           { icon: Zap, label: "WPM", value: wpm, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
           { icon: Target, label: "Accuracy", value: `${accuracy}%`, color: "text-primary", bg: "bg-primary/10" },
           { icon: TrendingUp, label: "Progress", value: `${Math.round(progress)}%`, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
@@ -181,7 +189,21 @@ const ParagraphTyping = () => {
               <FileText className="w-5 h-5" />
               Paragraph Typing
             </span>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
+              <div className="flex gap-1">
+                {TIME_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant={selectedDuration === opt.value ? "default" : "outline"}
+                    size="sm"
+                    disabled={isTyping}
+                    onClick={() => { setSelectedDuration(opt.value); setTimeLeft(opt.value); }}
+                    className="text-xs px-2 py-1 h-7"
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
               {!isTyping ? (
                 <Button onClick={handleStart} size="sm"><Play className="w-4 h-4 mr-2" />Start</Button>
               ) : (

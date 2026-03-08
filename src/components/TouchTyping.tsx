@@ -26,9 +26,17 @@ const touchTypingLessons = [
   { name: "Mixed Practice", keys: "all keys", words: ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "sphinx", "of", "black", "quartz", "judge", "my", "vow", "pack", "box", "with", "five", "dozen", "liquor", "jugs"] },
 ];
 
+const TIME_OPTIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "5 min", value: 300 },
+  { label: "10 min", value: 600 },
+];
+
 const TouchTyping = () => {
   const [selectedLesson, setSelectedLesson] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
   const [currentText, setCurrentText] = useState("");
   const [typedText, setTypedText] = useState("");
@@ -93,7 +101,7 @@ const TouchTyping = () => {
   const handlePause = () => setIsTyping(false);
   const handleReset = () => {
     setIsTyping(false);
-    setTimeLeft(60);
+    setTimeLeft(selectedDuration);
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
@@ -109,7 +117,7 @@ const TouchTyping = () => {
       return;
     }
     try {
-      const testDuration = 60 - timeLeft;
+      const testDuration = selectedDuration - timeLeft;
       const characterCount = typedText.length;
       const correctCharacters = Math.round((accuracy / 100) * characterCount);
       const errors = characterCount - correctCharacters;
@@ -141,7 +149,7 @@ const TouchTyping = () => {
     }
     setTypedText(newText);
     const wordsTyped = newText.split(" ").length;
-    const timeElapsed = (60 - timeLeft) / 60;
+    const timeElapsed = (selectedDuration - timeLeft) / 60;
     setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
     let correct = 0;
     for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
@@ -161,7 +169,7 @@ const TouchTyping = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: Timer, label: "Time Left", value: `${timeLeft}s`, color: "text-primary", bg: "bg-primary/10" },
+          { icon: Timer, label: "Time Left", value: `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`, color: "text-primary", bg: "bg-primary/10" },
           { icon: Zap, label: "WPM", value: wpm, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
           { icon: Target, label: "Accuracy", value: `${accuracy}%`, color: "text-primary", bg: "bg-primary/10" },
           { icon: TrendingUp, label: "Progress", value: `${Math.round(progress)}%`, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
@@ -226,7 +234,21 @@ const TouchTyping = () => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Touch Typing - {touchTypingLessons[selectedLesson].name}</span>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
+              <div className="flex gap-1">
+                {TIME_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.value}
+                    variant={selectedDuration === opt.value ? "default" : "outline"}
+                    size="sm"
+                    disabled={isTyping}
+                    onClick={() => { setSelectedDuration(opt.value); setTimeLeft(opt.value); }}
+                    className="text-xs px-2 py-1 h-7"
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
               {!isTyping ? (
                 <Button onClick={handleStart} size="sm"><Play className="w-4 h-4 mr-2" />Start</Button>
               ) : (
