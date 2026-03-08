@@ -38,34 +38,32 @@ Format as simple text. Suggest 1 specific finger exercise or pattern they should
 
         const userPrompt = `My weakest keys right now are: [ ${keyList} ]. What is my daily curriculum?`;
 
-        // Connect to Google Gemini natively
-        const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+        // Connect to Groq natively
+        const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
 
         let generatedPlan = "";
 
-        if (GEMINI_API_KEY) {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        if (GROQ_API_KEY) {
+            const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${GROQ_API_KEY}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    system_instruction: {
-                        parts: { text: systemMessage }
-                    },
-                    contents: [{
-                        parts: [{ text: userPrompt }]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 300,
-                    }
+                    model: 'llama-3.3-70b-versatile',
+                    messages: [
+                        { role: 'system', content: systemMessage },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 300,
                 }),
             });
 
             if (response.ok) {
                 const data = await response.json();
-                generatedPlan = data.candidates?.[0]?.content?.parts?.[0]?.text || "Focus on building rhythm today.";
+                generatedPlan = data.choices?.[0]?.message?.content || "Focus on building rhythm today.";
             } else {
                 generatedPlan = `Data indicates friction on [ ${keyList} ]. Focus on drills utilizing these characters exclusively today.`;
             }

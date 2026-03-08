@@ -20,9 +20,9 @@ serve(async (req) => {
       );
     }
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      console.error('GEMINI_API_KEY is not configured');
+    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+    if (!GROQ_API_KEY) {
+      console.error('GROQ_API_KEY is not configured');
       return new Response(
         JSON.stringify({ error: 'AI service not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -41,28 +41,26 @@ serve(async (req) => {
 
     console.log('Generating content for:', language, topic || 'default');
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        system_instruction: {
-          parts: { text: systemMessage }
-        },
-        contents: [{
-          parts: [{ text: userPrompt }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 500,
-        }
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini AI error:', response.status, errorText);
+      console.error('Groq AI error:', response.status, errorText);
       return new Response(
         JSON.stringify({ error: 'Failed to generate code' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -70,7 +68,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    let generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let generatedCode = data.choices?.[0]?.message?.content || '';
 
     // Fallback cleanup of stray backticks that LLMs try to put in despite rules
     generatedCode = generatedCode.replace(/```[a-z]*\n/gi, '').replace(/```/g, '');

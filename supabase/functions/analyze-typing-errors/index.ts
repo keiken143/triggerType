@@ -63,10 +63,10 @@ serve(async (req) => {
     const recentWpm = recentTests.reduce((sum, t) => sum + t.wpm, 0) / recentTests.length;
     const recentAccuracy = recentTests.reduce((sum, t) => sum + Number(t.accuracy), 0) / recentTests.length;
 
-    // Call Gemini
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured');
+    // Call Groq
+    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+    if (!GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not configured');
     }
 
     const systemPrompt = `You are an expert typing coach. Analyze biometric error patterns and provide HIGHLY CONCISE structural feedback. 
@@ -87,30 +87,31 @@ RULES:
     - Recent Performance WPM: ${recentWpm.toFixed(1)}
     `;
 
-    const aiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const aiResponse = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `${systemPrompt}\n\nDATA:\n${prompt}` }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 500,
-        }
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `DATA:\n${prompt}` }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Gemini error:', aiResponse.status, errorText);
-      throw new Error('Gemini analysis failed');
+      console.error('Groq error:', aiResponse.status, errorText);
+      throw new Error('Groq analysis failed');
     }
 
     const aiData = await aiResponse.json();
-    const analysis = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "Error analysis unavailable.";
+    const analysis = aiData.choices?.[0]?.message?.content || "Error analysis unavailable.";
 
     return new Response(
       JSON.stringify({
