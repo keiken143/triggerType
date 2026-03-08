@@ -40,10 +40,15 @@ serve(async (req) => {
     const userId = user.id;
 
     // Fetch recent typing tests to analyze performance
+    const { language } = await req.json().catch(() => ({}));
+    const targetLanguage = language || 'javascript';
+
+    // Fetch recent typing tests filtered by language
     const { data: recentTests, error: testsError } = await supabase
       .from('typing_tests')
       .select('*')
       .eq('user_id', userId)
+      .eq('language', targetLanguage)
       .order('created_at', { ascending: false })
       .limit(10);
 
