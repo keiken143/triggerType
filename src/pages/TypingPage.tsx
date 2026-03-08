@@ -427,7 +427,21 @@ const TypingPage = () => {
                       `Typing Test - ${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`
                     )}
                   </span>
-                  <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex gap-1">
+                      {CODE_TIME_OPTIONS.map((opt) => (
+                        <Button
+                          key={opt.label}
+                          variant={selectedDuration === opt.value ? "default" : "outline"}
+                          size="sm"
+                          disabled={isTyping}
+                          onClick={() => { setSelectedDuration(opt.value); setTimeLeft(opt.value); }}
+                          className="text-xs px-2 py-1 h-7"
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
                     {!isTyping ? (
                       <Button onClick={handleStart} variant="default" size="sm" disabled={!currentText || isGenerating}>
                         <Play className="w-4 h-4 mr-2" />Start
