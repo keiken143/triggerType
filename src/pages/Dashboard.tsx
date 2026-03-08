@@ -42,6 +42,7 @@ interface TypingTest {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [recentTests, setRecentTests] = useState<TypingTest[]>([]);
   const [allTests, setAllTests] = useState<TypingTest[]>([]);
   const [stats, setStats] = useState({
