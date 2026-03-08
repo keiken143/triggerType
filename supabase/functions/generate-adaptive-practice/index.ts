@@ -62,7 +62,7 @@ serve(async (req) => {
 
     if (!recentTests || recentTests.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Complete at least one typing test to use adaptive practice' }),
+        JSON.stringify({ error: `Complete at least one ${targetLanguage} typing test to use adaptive practice for this language` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
