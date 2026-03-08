@@ -397,9 +397,9 @@ const TypingPage = () => {
                   </Select>
                 </div>
 
-                <div className="p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-lg space-y-3">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-secondary-glow/10 border border-primary/20 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    <Sparkles className="w-4 h-4 text-primary" />
                     <span className="font-medium text-sm">AI Content Generator</span>
                   </div>
                   <p className="text-sm text-muted-foreground">Generate custom code snippets using AI for typing practice</p>
