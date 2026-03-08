@@ -12,6 +12,7 @@ const themes: { name: ThemeName; label: string; colors: string[] }[] = [
   { name: "original", label: "Original", colors: ["hsl(195,100%,60%)", "hsl(280,100%,70%)"] },
   { name: "sunset", label: "Sunset", colors: ["hsl(24,95%,58%)", "hsl(350,85%,65%)"] },
   { name: "gray-tone", label: "Gray Tone", colors: ["hsl(220,15%,65%)", "hsl(230,12%,50%)"] },
+  { name: "nature", label: "Nature", colors: ["hsl(150,60%,45%)", "hsl(80,50%,55%)"] },
 ];
 
 export const ThemeSwitcher = () => {
