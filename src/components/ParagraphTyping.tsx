@@ -8,6 +8,7 @@ import {
   Play, Pause, Timer, Target, Zap, TrendingUp,
   FileText, Sparkles, Loader2, CheckCircle2,
 } from "lucide-react";
+import ReactiveKeyboard from "@/components/ReactiveKeyboard";
 
 const paragraphs = [
   "The quick brown fox jumps over the lazy dog. This sentence contains every letter of the alphabet and has been used for typing practice for over a century. It remains one of the most popular pangrams in the English language.",
@@ -269,6 +270,11 @@ const ParagraphTyping = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Reactive Keyboard */}
+      <ReactiveKeyboard
+        nextKey={isTyping && typedText.length < currentText.length ? currentText[typedText.length] : null}
+      />
     </div>
   );
 };

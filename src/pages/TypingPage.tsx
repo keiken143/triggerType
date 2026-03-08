@@ -15,6 +15,7 @@ import {
   Play, Pause, RotateCcw, Timer, Target, Zap, TrendingUp,
   Code, Sparkles, Brain, Keyboard, FileText, CheckCircle2,
 } from "lucide-react";
+import ReactiveKeyboard from "@/components/ReactiveKeyboard";
 
 const languageTypes = ["simple", "javascript", "typescript", "python", "java", "csharp", "cpp", "rust"] as const;
 type LanguageType = typeof languageTypes[number];
@@ -448,6 +449,11 @@ const TypingPage = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Reactive Keyboard */}
+              <ReactiveKeyboard
+                nextKey={isTyping && typedText.length < currentText.length ? currentText[typedText.length] : null}
+              />
 
               {/* Instructions - compact */}
               <div className="px-1 text-xs text-muted-foreground space-y-1">
