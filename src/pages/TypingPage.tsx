@@ -252,18 +252,18 @@ const TypingPage = () => {
   const progress = currentText.length > 0 ? (typedText.length / currentText.length) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
-      <div className="fixed inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: "var(--pattern-grid)" }} />
+    <div className="min-h-screen bg-background">
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "var(--pattern-grid)" }} />
       <Navbar />
       
-      <div className="container mx-auto px-6 pt-24 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 pt-24 pb-12">
         <Tabs defaultValue="typing" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 h-12 bg-surface border border-border/50">
-            <TabsTrigger value="typing" className="text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+          <TabsList className="grid w-full grid-cols-2 mb-8 h-11 bg-card/80 border border-border/50 rounded-xl">
+            <TabsTrigger value="typing" className="rounded-lg text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
               <Keyboard className="w-4 h-4 mr-2" />
               Typing
             </TabsTrigger>
-            <TabsTrigger value="code-typing" className="text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="code-typing" className="rounded-lg text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
               <Code className="w-4 h-4 mr-2" />
               Code Typing
             </TabsTrigger>
