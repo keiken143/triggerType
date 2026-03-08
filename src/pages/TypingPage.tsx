@@ -521,7 +521,7 @@ const TypingPage = () => {
                   <li>• Correct characters will be highlighted in blue</li>
                   <li>• Incorrect characters will be highlighted in red</li>
                   <li>• Your WPM and accuracy will be calculated in real-time</li>
-                  <li>• The test lasts for 60 seconds</li>
+                  <li>• Choose a time limit: 1 min, 3 min, or no time limit</li>
                 </ul>
               </CardContent>
             </Card>
