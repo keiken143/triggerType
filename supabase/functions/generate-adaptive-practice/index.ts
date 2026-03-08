@@ -141,7 +141,7 @@ Generate ONLY syntactically correct, executable ${langLabel} code. No comments, 
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Generate adaptive typing practice text now.' }
+          { role: 'user', content: `Generate adaptive ${langLabel} code practice now.` }
         ],
         temperature: 0.8,
         max_tokens: 500,
