@@ -631,7 +631,7 @@ const Dashboard = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-500" />
+                  <AlertCircle className="h-5 w-5 text-destructive" />
                   Error Analysis
                 </CardTitle>
               </CardHeader>
