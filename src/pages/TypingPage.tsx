@@ -293,7 +293,7 @@ const TypingPage = () => {
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                 <CardContent className="p-6 flex items-center space-x-4">
                   <div className="p-3 bg-primary/10 rounded-lg"><Timer className="w-6 h-6 text-primary" /></div>
-                  <div><p className="text-sm text-muted-foreground">Time Left</p><p className="text-2xl font-bold">{timeLeft}s</p></div>
+                  <div><p className="text-sm text-muted-foreground">Time</p><p className="text-2xl font-bold">{selectedDuration === 0 ? '∞' : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}</p></div>
                 </CardContent>
               </Card>
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
