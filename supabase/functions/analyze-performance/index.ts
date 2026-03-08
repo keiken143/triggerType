@@ -206,7 +206,7 @@ Be highly specific, reference their actual numbers, and make recommendations tha
   } catch (error) {
     console.error('Error in analyze-performance:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An internal error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
