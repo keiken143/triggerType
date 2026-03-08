@@ -28,8 +28,15 @@ import {
 const languageTypes = ["simple", "javascript", "typescript", "python", "java", "csharp", "cpp", "rust"] as const;
 type LanguageType = typeof languageTypes[number];
 
+const CODE_TIME_OPTIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "No Limit", value: 0 },
+];
+
 const TypingPage = () => {
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageType>("javascript");
   const [currentText, setCurrentText] = useState("");
