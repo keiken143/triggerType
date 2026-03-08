@@ -169,7 +169,7 @@ const TouchTyping = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { icon: Timer, label: "Time Left", value: `${timeLeft}s`, color: "text-primary", bg: "bg-primary/10" },
+          { icon: Timer, label: "Time Left", value: `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`, color: "text-primary", bg: "bg-primary/10" },
           { icon: Zap, label: "WPM", value: wpm, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
           { icon: Target, label: "Accuracy", value: `${accuracy}%`, color: "text-primary", bg: "bg-primary/10" },
           { icon: TrendingUp, label: "Progress", value: `${Math.round(progress)}%`, color: "text-secondary-glow", bg: "bg-secondary-glow/10" },
