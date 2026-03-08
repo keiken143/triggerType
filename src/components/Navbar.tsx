@@ -124,7 +124,7 @@ export const Navbar = () => {
               </Link>
             </div>
           )}
-        </div>
+          {user ? (
 
         {/* Mobile Menu */}
         <div className="md:hidden flex items-center space-x-2">
