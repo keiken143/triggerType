@@ -684,7 +684,7 @@ const Dashboard = () => {
                   )}
                   {stats.avgAccuracy < 85 && (
                     <li className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Low Overall Accuracy</p>
                         <p className="text-sm text-muted-foreground">Slow down and focus on hitting the right keys. Speed will come with practice.</p>
