@@ -340,18 +340,18 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-surface to-background">
+    <div className="min-h-screen bg-background">
       <div 
-        className="fixed inset-0 opacity-5"
+        className="fixed inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: "var(--pattern-grid)" }}
       />
       
       <Navbar />
       
-      <div className="container mx-auto px-6 pt-24 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 pt-24 pb-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Progress Dashboard</h1>
-          <p className="text-muted-foreground">Track your typing evolution and biometric patterns</p>
+          <h1 className="text-3xl font-bold mb-1">Progress Dashboard</h1>
+          <p className="text-muted-foreground text-sm">Track your typing evolution and patterns</p>
         </div>
 
         {/* Overview Stats */}
