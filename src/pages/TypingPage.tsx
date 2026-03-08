@@ -272,12 +272,12 @@ const TypingPage = () => {
           {/* Tab 1: Typing (Touch Typing + Paragraph Typing) */}
           <TabsContent value="typing">
             <Tabs defaultValue="touch" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/50 border border-border/50">
-                <TabsTrigger value="touch" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-card/50 border border-border/30 rounded-lg">
+                <TabsTrigger value="touch" className="rounded-md data-[state=active]:bg-primary/15 data-[state=active]:text-primary text-sm">
                   <Keyboard className="w-4 h-4 mr-2" />
                   Touch Typing
                 </TabsTrigger>
-                <TabsTrigger value="paragraph" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+                <TabsTrigger value="paragraph" className="rounded-md data-[state=active]:bg-primary/15 data-[state=active]:text-primary text-sm">
                   <FileText className="w-4 h-4 mr-2" />
                   Paragraph Typing
                 </TabsTrigger>
