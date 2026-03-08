@@ -666,7 +666,7 @@ const Dashboard = () => {
                 <ul className="space-y-3">
                   {recentTests.length > 3 && stats.avgWpm > stats.bestWpm * 0.7 && (
                     <li className="flex gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Rushing Through Tests</p>
                         <p className="text-sm text-muted-foreground">Your speed varies significantly. Focus on maintaining consistent pace.</p>
