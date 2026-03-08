@@ -422,8 +422,10 @@ const TypingPage = () => {
             </Card>
 
             {/* Typing Area */}
-            <Card className="mb-8 bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader>
+            <Card className={`mb-8 bg-card/50 backdrop-blur-sm border-border/50 transition-all duration-300 ${
+              isTyping ? 'sticky top-16 z-40 shadow-lg' : ''
+            }`}>
+              <CardHeader className={isTyping ? 'py-3' : ''}>
                 <CardTitle className="flex items-center justify-between">
                   <span>
                     {isAdaptiveMode ? (
