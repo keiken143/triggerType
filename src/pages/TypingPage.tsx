@@ -384,7 +384,7 @@ const TypingPage = () => {
                       onCopy={(e) => e.preventDefault()}
                       onDrop={(e) => e.preventDefault()}
                       onDragOver={(e) => e.preventDefault()}
-                      className="w-full h-36 p-4 bg-surface/50 border border-border/30 rounded-xl resize-none focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm disabled:opacity-40 font-mono transition-all"
+                      className="w-full h-36 p-4 bg-surface/50 border border-border/30 rounded-xl resize-none focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20 text-sm disabled:opacity-40 font-mono whitespace-pre leading-[2] tracking-wide transition-all"
                     />
                   </div>
 
