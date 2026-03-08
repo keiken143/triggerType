@@ -10,6 +10,7 @@ import { PerformanceComparisonChart } from "@/components/charts/PerformanceCompa
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   TrendingUp, 
   Target, 
@@ -41,6 +42,7 @@ interface TypingTest {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [recentTests, setRecentTests] = useState<TypingTest[]>([]);
   const [allTests, setAllTests] = useState<TypingTest[]>([]);
   const [stats, setStats] = useState({
@@ -464,7 +466,7 @@ const Dashboard = () => {
                     </div>
                   ) : recentTests.length > 0 ? (
                     <div className="space-y-4">
-                      {recentTests.map((test) => (
+                      {recentTests.slice(0, 5).map((test) => (
                         <div key={test.id} className="flex items-center justify-between p-3 bg-surface rounded-lg">
                           <div className="flex items-center space-x-3">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -480,6 +482,13 @@ const Dashboard = () => {
                           </div>
                         </div>
                       ))}
+                      <Button
+                        variant="outline"
+                        className="w-full mt-2"
+                        onClick={() => navigate("/all-tests")}
+                      >
+                        All Tests
+                      </Button>
                     </div>
                   ) : (
                     <div className="text-center py-8">
