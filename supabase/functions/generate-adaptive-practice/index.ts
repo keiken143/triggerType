@@ -27,16 +27,17 @@ serve(async (req) => {
     });
 
     const token = authHeader.replace('Bearer ', '');
-    const { data, error: claimsError } = await supabase.auth.getClaims(token);
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
 
-    if (claimsError || !data?.claims) {
+    if (userError || !user) {
+      console.error('Auth error:', userError);
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = data.claims.sub;
+    const userId = user.id;
 
     // Fetch recent typing tests to analyze performance
     const { data: recentTests, error: testsError } = await supabase
