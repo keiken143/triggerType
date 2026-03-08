@@ -89,7 +89,7 @@ const TypingPage = () => {
     } catch { toast({ title: "Error", description: "Failed to save test result.", variant: "destructive" }); }
   };
 
-  const handleStart = () => { startTimeRef.current = Date.now(); setIsTyping(true); };
+  const handleStart = () => { startTimeRef.current = Date.now(); setIsTyping(true); setTimeout(() => codeDisplayRef.current?.focus(), 50); };
   const handlePause = () => setIsTyping(false);
   const handleReset = () => {
     setIsTyping(false); setTimeLeft(selectedDuration); setTypedText(""); setWpm(0); setAccuracy(100);
