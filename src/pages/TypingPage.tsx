@@ -130,6 +130,7 @@ const TypingPage = () => {
     setTestCompleted(false);
     setTestSubmitted(false);
     setKeyErrors({});
+    setElapsedTime(0);
   };
 
   const generateTextForLanguage = async (language: LanguageType) => {
