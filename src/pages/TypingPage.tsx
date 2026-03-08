@@ -185,6 +185,7 @@ const TypingPage = () => {
       if (!session) { toast({ title: "Authentication Required", description: "Please log in.", variant: "destructive" }); return; }
       const { data, error } = await supabase.functions.invoke('generate-adaptive-practice', {
         headers: { Authorization: `Bearer ${session.access_token}` },
+        body: { language: selectedLanguage },
       });
       if (error) throw error;
       if (data.error) {
@@ -330,7 +331,7 @@ const TypingPage = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">AI-powered practice sessions tailored to your performance.</p>
+                  <p className="text-sm text-muted-foreground">AI-powered code practice in <span className="text-primary font-medium">{selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}</span> tailored to your performance.</p>
                   {isAdaptiveMode && adaptiveDifficulty && (
                     <div className="p-3 bg-card/50 rounded-lg border border-border/50">
                       <div className="flex items-center justify-between mb-2">
