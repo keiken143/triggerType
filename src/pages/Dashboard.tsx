@@ -704,7 +704,7 @@ const Dashboard = () => {
                   )}
                   {recentTests.length < 5 && (
                     <li className="flex gap-2">
-                      <Zap className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                      <Zap className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <p className="font-medium">Need More Data</p>
                         <p className="text-sm text-muted-foreground">Complete more tests to get detailed insights about your typing patterns.</p>
