@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -28,8 +28,15 @@ import {
 const languageTypes = ["simple", "javascript", "typescript", "python", "java", "csharp", "cpp", "rust"] as const;
 type LanguageType = typeof languageTypes[number];
 
+const CODE_TIME_OPTIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "No Limit", value: 0 },
+];
+
 const TypingPage = () => {
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageType>("javascript");
   const [currentText, setCurrentText] = useState("");
@@ -45,6 +52,7 @@ const TypingPage = () => {
   const [adaptiveDifficulty, setAdaptiveDifficulty] = useState("");
   const [adaptiveMetrics, setAdaptiveMetrics] = useState<any>(null);
   const [testCount, setTestCount] = useState(0);
+  const startTimeRef = useRef(0);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -69,18 +77,21 @@ const TypingPage = () => {
     fetchTestCount();
   }, [user]);
 
+  const [elapsedTime, setElapsedTime] = useState(0);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isTyping && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
+    if (isTyping && selectedDuration > 0 && timeLeft > 0) {
+      interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    } else if (selectedDuration > 0 && timeLeft === 0) {
       setIsTyping(false);
       setTestCompleted(true);
     }
+    if (isTyping && selectedDuration === 0) {
+      interval = setInterval(() => setElapsedTime(Math.round((Date.now() - startTimeRef.current) / 1000)), 1000);
+    }
     return () => clearInterval(interval);
-  }, [isTyping, timeLeft]);
+  }, [isTyping, timeLeft, selectedDuration]);
 
   const handleSubmitTest = async () => {
     if (!user) {
@@ -88,7 +99,7 @@ const TypingPage = () => {
       return;
     }
     try {
-      const testDuration = 60 - timeLeft;
+      const testDuration = selectedDuration > 0 ? selectedDuration - timeLeft : Math.round((Date.now() - startTimeRef.current) / 1000);
       const characterCount = typedText.length;
       const correctCharacters = Math.round((accuracy / 100) * characterCount);
       const errors = characterCount - correctCharacters;
@@ -108,17 +119,18 @@ const TypingPage = () => {
     }
   };
 
-  const handleStart = () => setIsTyping(true);
+  const handleStart = () => { startTimeRef.current = Date.now(); setIsTyping(true); };
   const handlePause = () => setIsTyping(false);
   const handleReset = () => {
     setIsTyping(false);
-    setTimeLeft(60);
+    setTimeLeft(selectedDuration);
     setTypedText("");
     setWpm(0);
     setAccuracy(100);
     setTestCompleted(false);
     setTestSubmitted(false);
     setKeyErrors({});
+    setElapsedTime(0);
   };
 
   const generateTextForLanguage = async (language: LanguageType) => {
@@ -202,7 +214,7 @@ const TypingPage = () => {
       setTypedText(newText);
       setTimeout(() => { textarea.selectionStart = textarea.selectionEnd = start + 1; }, 0);
       const wordsTyped = newText.split(' ').length;
-      const timeElapsed = (60 - timeLeft) / 60;
+      const timeElapsed = selectedDuration > 0 ? (selectedDuration - timeLeft) / 60 : (Date.now() - startTimeRef.current) / 60000;
       setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
       let correct = 0;
       for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
@@ -223,7 +235,7 @@ const TypingPage = () => {
     }
     setTypedText(newText);
     const wordsTyped = newText.split(' ').length;
-    const timeElapsed = (60 - timeLeft) / 60;
+    const timeElapsed = selectedDuration > 0 ? (selectedDuration - timeLeft) / 60 : (Date.now() - startTimeRef.current) / 60000;
     setWpm(timeElapsed > 0 ? Math.round(wordsTyped / timeElapsed) : 0);
     let correct = 0;
     for (let i = 0; i < newText.length; i++) if (newText[i] === currentText[i]) correct++;
@@ -285,7 +297,7 @@ const TypingPage = () => {
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                 <CardContent className="p-6 flex items-center space-x-4">
                   <div className="p-3 bg-primary/10 rounded-lg"><Timer className="w-6 h-6 text-primary" /></div>
-                  <div><p className="text-sm text-muted-foreground">Time Left</p><p className="text-2xl font-bold">{timeLeft}s</p></div>
+                  <div><p className="text-sm text-muted-foreground">Time</p><p className="text-2xl font-bold">{selectedDuration === 0 ? `${Math.floor(elapsedTime / 60)}:${(elapsedTime % 60).toString().padStart(2, '0')}` : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}</p></div>
                 </CardContent>
               </Card>
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
@@ -419,7 +431,21 @@ const TypingPage = () => {
                       `Typing Test - ${selectedLanguage.charAt(0).toUpperCase() + selectedLanguage.slice(1)}`
                     )}
                   </span>
-                  <div className="flex space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex gap-1">
+                      {CODE_TIME_OPTIONS.map((opt) => (
+                        <Button
+                          key={opt.label}
+                          variant={selectedDuration === opt.value ? "default" : "outline"}
+                          size="sm"
+                          disabled={isTyping}
+                          onClick={() => { setSelectedDuration(opt.value); setTimeLeft(opt.value); }}
+                          className="text-xs px-2 py-1 h-7"
+                        >
+                          {opt.label}
+                        </Button>
+                      ))}
+                    </div>
                     {!isTyping ? (
                       <Button onClick={handleStart} variant="default" size="sm" disabled={!currentText || isGenerating}>
                         <Play className="w-4 h-4 mr-2" />Start
@@ -427,6 +453,11 @@ const TypingPage = () => {
                     ) : (
                       <Button onClick={handlePause} variant="secondary" size="sm">
                         <Pause className="w-4 h-4 mr-2" />Pause
+                      </Button>
+                    )}
+                    {selectedDuration === 0 && isTyping && (
+                      <Button onClick={() => { setIsTyping(false); setTestCompleted(true); }} variant="default" size="sm">
+                        <Target className="w-4 h-4 mr-2" />Finish
                       </Button>
                     )}
                     <Button onClick={handleReset} variant="outline" size="sm">
@@ -499,7 +530,7 @@ const TypingPage = () => {
                   <li>• Correct characters will be highlighted in blue</li>
                   <li>• Incorrect characters will be highlighted in red</li>
                   <li>• Your WPM and accuracy will be calculated in real-time</li>
-                  <li>• The test lasts for 60 seconds</li>
+                  <li>• Choose a time limit: 1 min, 3 min, or no time limit</li>
                 </ul>
               </CardContent>
             </Card>
