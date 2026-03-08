@@ -26,9 +26,17 @@ const touchTypingLessons = [
   { name: "Mixed Practice", keys: "all keys", words: ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog", "sphinx", "of", "black", "quartz", "judge", "my", "vow", "pack", "box", "with", "five", "dozen", "liquor", "jugs"] },
 ];
 
+const TIME_OPTIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "5 min", value: 300 },
+  { label: "10 min", value: 600 },
+];
+
 const TouchTyping = () => {
   const [selectedLesson, setSelectedLesson] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
   const [currentText, setCurrentText] = useState("");
   const [typedText, setTypedText] = useState("");
